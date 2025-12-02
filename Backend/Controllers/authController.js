@@ -73,9 +73,10 @@ export const technicianLogin = async (req,res) => {
         if(result.rows.length === 0){
             res.status(404).json({message:"technician not found"});
         }
-        
+
         const technician = result.rows[0];
         const token = jwt.sign({id: technician.id, name: technician.name, role:"technician"}, process.env.JWT_SECRET);
+        console.log(technician);
 
         return res.json({
             message:"technician login successfully",
