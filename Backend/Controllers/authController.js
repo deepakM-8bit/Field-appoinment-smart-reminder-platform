@@ -37,17 +37,60 @@ export const loginUser = async(req,res) => {
             return res.status(403).json({message:"incorrect password"});
         }
         
-        const token = jwt.sign({id: user.id , email:user.email, name: user.name}, process.env.JWT_SECRET);
+        const token = jwt.sign({id: user.id , email:user.email, name: user.name, role:user.role},
+             process.env.JWT_SECRET);
         res.json({
             message: "user found",
             token: token,
             user:{
                 id:user.id,
                 name:user.name,
-                email:user.email
+                email:user.email,
+                role:user.role
             }
         });
+        console.log({
+            message:"user logged in",
+            id:user.id,
+            name:user.name,
+            email:user.email,
+            role:user.role})
     }catch(err){
         res.status(500).json(err.message);
+    }
+}
+
+export const technicianLogin = async (req,res) => {
+    const {name , phoneno} = req.body;
+
+        if (!name || !phoneno) {
+        return res.status(400).json({ message: "Name and phone number required" });
+        }
+
+    try{
+        const result = await pool.query("SELECT * FROM technicians WHERE phone=$1",[phoneno]);
+
+        if(result.rows.length === 0){
+            res.status(404).json({message:"technician not found"});
+        }
+        
+        const technician = result.rows[0];
+        const token = jwt.sign({id: technician.id, name: technician.name, role:"technician"}, process.env.JWT_SECRET);
+
+        return res.json({
+            message:"technician login successfully",
+            role:"technician",
+            token,
+            technician:{
+                id:technician.id,
+                name:technician.name,
+                category:technician.category,
+                work_start_time:technician.work_start_time,
+                work_end_time:technician.work_end_time
+            },
+        })
+    }catch(err){
+        console.error("technician login error:",err);
+        return res.status(500).json({message:"server error"});
     }
 }
