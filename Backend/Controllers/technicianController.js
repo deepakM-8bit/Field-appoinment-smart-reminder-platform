@@ -30,6 +30,7 @@ export const  addTechnicians = async(req,res) => {
     }
 }
 
+// update technicians
 export const updateTechnician = async (req,res) => {
     const {id} = req.params;
     const {name,phoneno,category,WST,WET,active} = req.body;
@@ -42,6 +43,18 @@ export const updateTechnician = async (req,res) => {
         res.json(result.rows[0]);
     }catch(err){
         console.error("database error:",err.message);
+        res.status(500).json({error:err.message});
+    }
+}
+
+//delete technicians
+export const deleteTechnicians = async (req,res) => {
+    const {id} = req.params;
+
+    try{
+        const result = await pool.query("DELETE FROM technicians WHERE id=$1",[id]);
+        res.json({message:"technician deleted"});
+    }catch(err){
         res.status(500).json({error:err.message});
     }
 }
