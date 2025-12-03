@@ -1,5 +1,5 @@
 import { addTechnicians,deleteTechnicians,getTechnicians,updateTechnician } from "../Controllers/technicianController.js";
-import { authenticate } from "../Middleware/authMiddleware.js";
+import  authenticate  from "../Middleware/authMiddleware.js";
 import express from "express";
 
 const router = express.Router();
