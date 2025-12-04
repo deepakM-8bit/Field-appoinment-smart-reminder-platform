@@ -16,7 +16,7 @@ export const getAppoinmentById = async (req,res) => {
 };
 
 //technician updates the diagnosis
-export const updateTechnicianDiagnosis = asynnc (req,res) => {
+export const updateTechnicianDiagnosis = async (req,res) => {
 
 };
 
