@@ -42,7 +42,7 @@ export const createAppointment = async(req,res)=>{
         );
         const technicians = getTechnicians.rows;
 
-        let chosentechnician = null;
+        let chosentechnicianId = null;
 
         if(technicians.length > 0){
             let bestTech = null;
@@ -58,9 +58,31 @@ export const createAppointment = async(req,res)=>{
 
                 const workloadMinutes = Number(workload.rows[0].minutes)||0;
 
-                const workStartTime = timeToMinutes
+                const workStartTime = timeToMinutes(tech.work_start_time);
+                const workEndTime = timeToMinutes(tech.work_end_time);
+                const capacityMinutes = workEndTime - workStartTime;
+                const remainingCapacity = capacityMinutes = workloadMinutes;
+
+                const diagnosisDurationMinutes = 30;
+                
+                const canFit = remainingCapacity >= diagnosisDurationMinutes;
+
+                if(canFit){
+                    if(!bestTech || workloadMinutes < bestTech.workloadMinutes){
+                        bestTech={
+                            id:tech.id,
+                            workloadMinutes,
+                        };
+                    }
+                }
+            }
+            if(bestTech){
+                chosentechnicianId = bestTech.id;
             }
         }
+        const status = chosentechnicianId ? "diagnosis_sheduled" : "waiting_for_assignment";
+
+        
 
     }catch(err){
 
