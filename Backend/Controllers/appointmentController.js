@@ -3,7 +3,7 @@ import pool from "../db";
 function timeToMinutes(timestr){
     if(!timestr) return ;
     const [h,m,s] = timestr.split(":").map(Number);
-    return (h||0 * 60 + (m||0));
+    return (h||0) * 60 + (m||0);
 }
 
 //admin create appointment (diagnosis/repair)
@@ -20,14 +20,14 @@ export const createAppointment = async(req,res)=>{
     try{
         await client.query("BEGIN");
 
-        const existingCustomer = await pool.query("SELECT * FROM customers WHERE phone=$1 AND owner_id=$2",
+        const existingCustomer = await client.query("SELECT * FROM customers WHERE phone=$1 AND owner_id=$2",
             [phoneno,userId]   
         );
 
         let customer;
        
-        if(!existingCustomer.rows.length === 0){
-            const addCustomer = await pool.query("INSERT INTO customers (owner_id,name,phone,address) VALUES ($1,$2,$3,$4)",
+        if(existingCustomer.rows.length === 0){
+            const addCustomer = await client.query("INSERT INTO customers (owner_id, name, phone, address) VALUES ($1,$2,$3,$4) RETURNING *",
                 [userId,name,phoneno,address]);
 
                 customer = addCustomer.rows[0];
@@ -37,7 +37,7 @@ export const createAppointment = async(req,res)=>{
 
         const customerId = customer.id;
 
-        const getTechnicians = await pool.query ("SELECT * FROM technicians WHERE owner_id=$1 AND category=$3 AND active=true ",
+        const getTechnicians = await client.query ("SELECT * FROM technicians WHERE owner_id=$1 AND category=$2 AND active=true ",
             [userId,category]
         );
         const technicians = getTechnicians.rows;
@@ -80,30 +80,31 @@ export const createAppointment = async(req,res)=>{
                 chosenTechnicianId = bestTech.id;
             }
         }
-        const status = chosenTechnicianId ? "diagnosis_sheduled" : "waiting_for_assignment";
+        const status = chosenTechnicianId ? "diagnosis_scheduled" : "waiting_for_assignment";
 
         const insertAppointment = await client.query(
-            `INSERT INTO appointments (owner_id,customer_id,
-            technican_id,appointment_type,status,category,
-            scheduled_date,scheduled_time) VALUES 
-            ($1,$2,$3,$4,$5,$6.$7,$8) RETURNING *`,
-            [owner_id,customerId,chosenTechnicianId,"diagnosis",
+            `INSERT INTO appointments (owner_id, customer_id,
+             technician_id, appointment_type, status, category,
+             scheduled_date, scheduled_time) VALUES 
+            ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
+            [userId,customerId,chosenTechnicianId,"diagnosis",
                 status,category,sd,st]
         );
 
         const appointment = insertAppointment.rows[0];
 
         await client.query(
-            `INNSERT INTO reminders(appoinment_id,send_at,message)
-            VALUES ($1,(TIMESTAMP($2||' '||$3))-INTERVAL '24 hours','customer_sms'),
-            ($1, (TIMESTAMP($2||' '||$3))-INTERVAL '1hour','customer_sms)`,
+            `INSERT INTO reminders(appoinment_id, send_at, message)
+             VALUES 
+                ($1, (TIMESTAMP($2 || ' ' || $3)) - INTERVAL '24 hours', 'customer_sms'),
+                ($1, (TIMESTAMP($2 || ' ' || $3)) - INTERVAL '1 hour', 'customer_sms)`,
             [appointment.id,sd,st]
         );
 
         await client.query(
-            `INSERT INTO logs(owner_id,appoinment_id,technician_id,event,description)
+            `INSERT INTO logs(owner_id, appoinment_id, technician_id, event, description)
             VALUES ($1,$2,$3,$4,$5)`,
-            [owner_id,appointment.id,chosenTechnicianId,"diagnosis_created",
+            [userId,appointment.id,chosenTechnicianId,"diagnosis_created",
                 chosenTechnicianId ? "Diagnosis appointment created and technician auto-assigned" :
                 "Diagnosis appointment created but no technician available"
             ]
