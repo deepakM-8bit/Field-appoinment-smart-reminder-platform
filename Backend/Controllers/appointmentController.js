@@ -42,7 +42,7 @@ export const createAppointment = async(req,res)=>{
         );
         const technicians = getTechnicians.rows;
 
-        let chosentechnicianId = null;
+        let chosenTechnicianId = null;
 
         if(technicians.length > 0){
             let bestTech = null;
@@ -61,9 +61,9 @@ export const createAppointment = async(req,res)=>{
                 const workStartTime = timeToMinutes(tech.work_start_time);
                 const workEndTime = timeToMinutes(tech.work_end_time);
                 const capacityMinutes = workEndTime - workStartTime;
-                const remainingCapacity = capacityMinutes = workloadMinutes;
+                const remainingCapacity = capacityMinutes - workloadMinutes;
 
-                const diagnosisDurationMinutes = 30;
+                const diagnosisDurationMinutes = 60;
                 
                 const canFit = remainingCapacity >= diagnosisDurationMinutes;
 
@@ -77,17 +77,52 @@ export const createAppointment = async(req,res)=>{
                 }
             }
             if(bestTech){
-                chosentechnicianId = bestTech.id;
+                chosenTechnicianId = bestTech.id;
             }
         }
-        const status = chosentechnicianId ? "diagnosis_sheduled" : "waiting_for_assignment";
+        const status = chosenTechnicianId ? "diagnosis_sheduled" : "waiting_for_assignment";
 
-        
+        const insertAppointment = await client.query(
+            `INSERT INTO appointments (owner_id,customer_id,
+            technican_id,appointment_type,status,category,
+            scheduled_date,scheduled_time) VALUES 
+            ($1,$2,$3,$4,$5,$6.$7,$8) RETURNING *`,
+            [owner_id,customerId,chosenTechnicianId,"diagnosis",
+                status,category,sd,st]
+        );
 
+        const appointment = insertAppointment.rows[0];
+
+        await client.query(
+            `INNSERT INTO reminders(appoinment_id,send_at,message)
+            VALUES ($1,(TIMESTAMP($2||' '||$3))-INTERVAL '24 hours','customer_sms'),
+            ($1, (TIMESTAMP($2||' '||$3))-INTERVAL '1hour','customer_sms)`,
+            [appointment.id,sd,st]
+        );
+
+        await client.query(
+            `INSERT INTO logs(owner_id,appoinment_id,technician_id,event,description)
+            VALUES ($1,$2,$3,$4,$5)`,
+            [owner_id,appointment.id,chosenTechnicianId,"diagnosis_created",
+                chosenTechnicianId ? "Diagnosis appointment created and technician auto-assigned" :
+                "Diagnosis appointment created but no technician available"
+            ]
+        );
+
+        await client.query("COMMIT");
+        return res.status(201).json({
+            message:"Diagnosis appointment created",
+            appointment,
+            customer,
+            autoAssignedTechnicianId:chosenTechnicianId,
+        });
     }catch(err){
-
+        await client.query("ROLLBACK");
+        console.error("error creating diagnosis appoinment:",err);
+        return res.status(500).json({message:"internal server error"});
+    }finally{
+        client.release();
     }
-
 };
 
 //admin can view appoinment list
