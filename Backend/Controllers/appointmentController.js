@@ -21,14 +21,14 @@ export const createAppointment = async(req,res)=>{
         await client.query("BEGIN");
 
         const existingCustomer = await client.query("SELECT * FROM customers WHERE phone=$1 AND owner_id=$2",
-            [phoneno,userId]   
+            [phoneno, userId]   
         );
 
         let customer;
        
         if(existingCustomer.rows.length === 0){
             const addCustomer = await client.query("INSERT INTO customers (owner_id, name, phone, address) VALUES ($1,$2,$3,$4) RETURNING *",
-                [userId,name,phoneno,address]);
+                [userId, name, phoneno, address]);
 
                 customer = addCustomer.rows[0];
         }else{
@@ -37,8 +37,12 @@ export const createAppointment = async(req,res)=>{
 
         const customerId = customer.id;
 
-        const getTechnicians = await client.query ("SELECT * FROM technicians WHERE owner_id=$1 AND category=$2 AND active=true ",
-            [userId,category]
+        const getTechnicians = await client.query (`
+            SELECT * FROM technicians 
+            WHERE owner_id=$1 
+            AND category=$2 
+            AND active=true`,
+            [userId, category]
         );
         const technicians = getTechnicians.rows;
 
@@ -49,11 +53,12 @@ export const createAppointment = async(req,res)=>{
 
             for(const tech of technicians){
                 const workload = await client.query(`
-                    SELECT COALESCE(SUM(estimated_duration_minutes),0)
-                    AS minutes FROM appointments WHERE
-                    technician_id=$1 AND scheduled_date=$2
+                    SELECT COALESCE(SUM(estimated_duration),0)AS minutes
+                    FROM appointments
+                    WHERE technician_id=$1 
+                    AND scheduled_date=$2
                     AND status IN ('repair_scheduled','repair_in_progress')`,
-                    [tech.id,sd]
+                    [tech.id, sd]
                 );
 
                 const workloadMinutes = Number(workload.rows[0].minutes)||0;
@@ -87,37 +92,47 @@ export const createAppointment = async(req,res)=>{
              technician_id, appointment_type, status, category,
              scheduled_date, scheduled_time) VALUES 
             ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
-            [userId,customerId,chosenTechnicianId,"diagnosis",
-                status,category,sd,st]
+            [userId, customerId, chosenTechnicianId, "diagnosis",
+                 status, category, sd, st]
         );
 
         const appointment = insertAppointment.rows[0];
 
         await client.query(
-            `INSERT INTO reminders(appoinment_id, send_at, message)
-             VALUES 
-                ($1, (TIMESTAMP($2 || ' ' || $3)) - INTERVAL '24 hours', 'customer_sms'),
-                ($1, (TIMESTAMP($2 || ' ' || $3)) - INTERVAL '1 hour', 'customer_sms)`,
-            [appointment.id,sd,st]
+            `INSERT INTO reminders (appointment_id, send_at, type)
+            VALUES 
+                ($1, ($2::date + $3::time - INTERVAL '24 hours'), 'customer_sms'),
+                ($1, ($2::date + $3::time - INTERVAL '1 hour'), 'customer_sms')`,
+            [appointment.id, sd, st]
         );
 
+
         await client.query(
-            `INSERT INTO logs(owner_id, appoinment_id, technician_id, event, description)
+            `INSERT INTO logs(owner_id, appointment_id, technician_id, event, description)
             VALUES ($1,$2,$3,$4,$5)`,
-            [userId,appointment.id,chosenTechnicianId,"diagnosis_created",
-                chosenTechnicianId ? "Diagnosis appointment created and technician auto-assigned" :
-                "Diagnosis appointment created but no technician available"
+            [userId, 
+            appointment.id,
+            chosenTechnicianId, 
+            "diagnosis_created",
+            chosenTechnicianId 
+                ? "Diagnosis appointment created and technician auto-assigned" 
+                : "Diagnosis appointment created but no technician available"
             ]
         );
 
         await client.query("COMMIT");
+        console.log(req.body);
+        console.log("Request category length:", category.length);
+
         return res.status(201).json({
             message:"Diagnosis appointment created",
             appointment,
             customer,
             autoAssignedTechnicianId:chosenTechnicianId,
         });
+        
     }catch(err){
+        console.log(req.body);
         await client.query("ROLLBACK");
         console.error("error creating diagnosis appoinment:",err);
         return res.status(500).json({message:"internal server error"});
