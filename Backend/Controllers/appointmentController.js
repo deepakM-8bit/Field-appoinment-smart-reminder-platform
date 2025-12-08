@@ -52,6 +52,19 @@ export const createAppointment = async(req,res)=>{
             let bestTech = null;
 
             for(const tech of technicians){
+                const normalizedReqCategory = category.toLowerCase().replace(/\s+/g, '');
+
+                const techCategories = tech.category
+                    .toLowerCase()
+                    .replace(/\s+/g, '')
+                    .split(',');
+
+                const canDoCategory = techCategories.includes(normalizedReqCategory);
+
+                if (!canDoCategory) {
+                    continue; // skip this technician
+                }
+
                 const workload = await client.query(`
                     SELECT COALESCE(SUM(estimated_duration),0)AS minutes
                     FROM appointments
