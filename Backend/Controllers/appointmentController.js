@@ -68,21 +68,22 @@ export const createAppointment = async(req,res)=>{
                 const workload = await client.query(`
                     SELECT COALESCE(
                         SUM(
-                            CASE
-                                 WHEN appointment_type = 'diagnosis'
+                          CASE
+                            WHEN appointment_type = 'diagnosis'
                                  AND status IN ('diagnosis_scheduled','diagnosis_in_progress')
-                                 THEN COALESCE(estimated_duration,60)
+                              THEN COALESCE(estimated_duration,60)
                                  
-                                 WHEN appointment_type = 'repair'
+                            WHEN appointment_type = 'repair'
                                  AND status IN ('repair_scheduled','repair_in_progress')
-                                 THEN COALESCE(estimated_duration,60)
-                                 ),0
-                            ELSE 0
-                                END
-                                   )
-                                 FROM appointments
-                                        WHERE technician_id=$1
-                                            AND scheduled_date=$2
+                              THEN COALESCE(estimated_duration,60)
+                        
+                            ELSE 0  
+                         END
+                        ),0
+                    )AS minutes
+                    FROM appointments
+                    WHERE technician_id=$1
+                      AND scheduled_date=$2;
                 `[chosenTechnicianId,sd]);
 
                 const workloadMinutes = Number(workload.rows[0].minutes)||0;
