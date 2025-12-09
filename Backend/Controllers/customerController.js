@@ -14,15 +14,15 @@ export const getCustomer = async (req,res) => {
 
 //add customer
 export const addCustomer = async (req,res) => {
-    const {name,phoneno,address} = req.body;
+    const {name,phoneno,address,email} = req.body;
     const userId = req.user.id;
 
     try{
          const existing = await pool.query("SELECT * FROM customers WHERE owner_id=$1 AND phone=$2",[userId,phoneno]);
          if(existing.rows.length) return res.json(existing.rows[0]);
 
-         const result = await pool.query("INSERT INTO customers (name,phone,address,owner_id) VALUES ($1,$2,$3,$4) RETURNING *",
-            [name,phoneno,address,userId]
+         const result = await pool.query("INSERT INTO customers (name,phone,address,email,owner_id) VALUES ($1,$2,$3,$4,$5) RETURNING *",
+            [name,phoneno,address,email,userId]
         );
         res.json(result.rows[0]);
     }catch(err){
