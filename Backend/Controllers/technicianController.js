@@ -33,12 +33,12 @@ export const  addTechnicians = async(req,res) => {
 // update technicians
 export const updateTechnician = async (req,res) => {
     const {id} = req.params;
-    const {name,phoneno,category,WST,WET,active} = req.body;
+    const {name,phoneno,email,category,WST,WET,active} = req.body;
     const userId = req.user.id;
 
     try{
-        const result = await pool.query("UPDATE technicians SET name=$1,phone=$2,category=$3,work_start_time=$4,work_end_time=$5,active=$6 WHERE id=$7 AND owner_id=$8 RETURNING *",
-            [name,phoneno,category,WST,WET,active,id,userId]
+        const result = await pool.query("UPDATE technicians SET name=$1,phone=$2,category=$3,work_start_time=$4,work_end_time=$5,active=$6,email=$7 WHERE id=$8 AND owner_id=$9 RETURNING *",
+            [name,phoneno,category,WST,WET,active,email,id,userId]
         );
         res.json(result.rows[0]);
     }catch(err){
