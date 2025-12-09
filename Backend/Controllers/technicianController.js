@@ -14,13 +14,13 @@ export const getTechnicians = async (req,res) => {
 
 //add technicians
 export const  addTechnicians = async(req,res) => {
-    const {name,phoneno,category,WST,WET,active} = req.body;
+    const {name,phoneno,email,category,WST,WET,active} = req.body;
     const userId = req.user.id;
     console.log(req.body);
 
     try{
-        const result = await pool.query("INSERT INTO technicians (name,phone,category,work_start_time,work_end_time,active,owner_id) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *",
-            [name,phoneno,category,WST,WET,active,userId]
+        const result = await pool.query("INSERT INTO technicians (name,phone,email,category,work_start_time,work_end_time,active,owner_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *",
+            [name,phoneno,email,category,WST,WET,active,userId]
         );
         res.json(result.rows);
         console.log(result.rows);
