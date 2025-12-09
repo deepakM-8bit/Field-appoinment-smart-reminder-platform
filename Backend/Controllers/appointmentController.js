@@ -40,9 +40,8 @@ export const createAppointment = async(req,res)=>{
         const getTechnicians = await client.query (`
             SELECT * FROM technicians 
             WHERE owner_id=$1 
-            AND category=$2 
             AND active=true`,
-            [userId, category]
+            [userId]
         );
         const technicians = getTechnicians.rows;
 
@@ -52,6 +51,7 @@ export const createAppointment = async(req,res)=>{
             let bestTech = null;
 
             for(const tech of technicians){
+
                 const normalizedReqCategory = category.toLowerCase().replace(/\s+/g, '');
 
                 const techCategories = tech.category
@@ -66,13 +66,24 @@ export const createAppointment = async(req,res)=>{
                 }
 
                 const workload = await client.query(`
-                    SELECT COALESCE(SUM(estimated_duration),0)AS minutes
-                    FROM appointments
-                    WHERE technician_id=$1 
-                    AND scheduled_date=$2
-                    AND status IN ('repair_scheduled','repair_in_progress')`,
-                    [tech.id, sd]
-                );
+                    SELECT COALESCE(
+                        SUM(
+                            CASE
+                                 WHEN appointment_type = 'diagnosis'
+                                 AND status IN ('diagnosis_scheduled','diagnosis_in_progress')
+                                 THEN COALESCE(estimated_duration,60)
+                                 
+                                 WHEN appointment_type = 'repair'
+                                 AND status IN ('repair_scheduled','repair_in_progress')
+                                 THEN COALESCE(estimated_duration,60)
+                                 ),0
+                            ELSE 0
+                                END
+                                   )
+                                 FROM appointments
+                                        WHERE technician_id=$1
+                                            AND scheduled_date=$2
+                `[chosenTechnicianId,sd]);
 
                 const workloadMinutes = Number(workload.rows[0].minutes)||0;
 
@@ -98,6 +109,7 @@ export const createAppointment = async(req,res)=>{
                 chosenTechnicianId = bestTech.id;
             }
         }
+
         const status = chosenTechnicianId ? "diagnosis_scheduled" : "waiting_for_assignment";
 
         const insertAppointment = await client.query(
@@ -135,8 +147,7 @@ export const createAppointment = async(req,res)=>{
 
         await client.query("COMMIT");
         console.log(req.body);
-        console.log("Request category length:", category.length);
-
+        console.log(appointment);
         return res.status(201).json({
             message:"Diagnosis appointment created",
             appointment,
