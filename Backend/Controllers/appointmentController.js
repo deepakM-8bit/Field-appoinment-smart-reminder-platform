@@ -125,11 +125,20 @@ export const createAppointment = async(req,res)=>{
         const appointment = insertAppointment.rows[0];
 
         await client.query(
-            `INSERT INTO reminders (appointment_id, send_at, type)
-            VALUES 
-                ($1, ($2::date + $3::time - INTERVAL '24 hours'), 'customer_sms'),
-                ($1, ($2::date + $3::time - INTERVAL '1 hour'), 'customer_sms')`,
-            [appointment.id, sd, st]
+            `INSERT INTO reminders (appointment_id, send_at, type, meta)
+            VALUES (
+              $appointmentId,
+              $sendAt,
+              'technician_reminder',
+              json_build_object(
+                 'technician_phone', $technicianPhone,
+                 'technician_name', $technicianName,
+                 'customer_name', $customerName,
+                 'customer_phone', $customerPhone,
+                 'customer_address', $customerAddress,
+                 'scheduled_date', $sheduledDate,
+                 'scheduled_time', $scheduledTime)
+            )`      
         );
 
 
