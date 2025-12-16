@@ -141,7 +141,6 @@ export const createAppointment = async(req,res)=>{
             )`      
         );
 
-
         await client.query(
             `INSERT INTO logs(owner_id, appointment_id, technician_id, event, description)
             VALUES ($1,$2,$3,$4,$5)`,
