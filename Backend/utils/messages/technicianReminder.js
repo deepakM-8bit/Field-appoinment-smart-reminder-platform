@@ -1,0 +1,1 @@
+import { sendWhatsappTemplate } from "../sendWhatsapp.js";
