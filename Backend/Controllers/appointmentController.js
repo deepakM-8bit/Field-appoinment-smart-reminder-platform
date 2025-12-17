@@ -37,6 +37,7 @@ export const createAppointment = async(req,res)=>{
 
         const customerId = customer.id;
 
+        /*----Tehcnician aut0-assign----*/
         const getTechnicians = await client.query (`
             SELECT * FROM technicians 
             WHERE owner_id=$1 
@@ -46,6 +47,7 @@ export const createAppointment = async(req,res)=>{
         const technicians = getTechnicians.rows;
 
         let chosenTechnicianId = null;
+        let chosenTechnician = null;
 
         if(technicians.length > 0){
             let bestTech = null;
@@ -108,11 +110,13 @@ export const createAppointment = async(req,res)=>{
             }
             if(bestTech){
                 chosenTechnicianId = bestTech.id;
+                chosenTechnician = tech;
             }
         }
 
         const status = chosenTechnicianId ? "diagnosis_scheduled" : "waiting_for_assignment";
 
+        /*----Appointment insert----*/
         const insertAppointment = await client.query(
             `INSERT INTO appointments (owner_id, customer_id,
              technician_id, appointment_type, status, category,
@@ -124,28 +128,41 @@ export const createAppointment = async(req,res)=>{
 
         const appointment = insertAppointment.rows[0];
 
-        await client.query(
-            `INSERT INTO reminders (appointment_id, send_at, type, meta)
-            VALUES (
-              $1,
-              $2,
-              'technician_reminder',
-              json_build_object(
-                 'technician_phone', $3,
-                 'technician_name', $4,
-                 'customer_name', $5,
-                 'customer_phone', $6,
-                 'customer_address', $7,
-                 'scheduled_date', $8,
-                 'scheduled_time', $9)
-            )      
-        )
-         `, 
-         [
-            appointment.id,
-            sendAt,
-         ];
+        /*----Reminder insert----*/
+        if(chosenTechnicianId){
+            const sendAt = new Date();
 
+            await client.query(
+             `INSERT INTO reminders (appointment_id, send_at, type, meta)
+              VALUES (
+                 $1,
+                 $2,
+                 'technician_reminder',
+                 jsonb_build_object(
+                   'technician_phone', $3,
+                   'technician_name', $4,
+                   'customer_name', $5,
+                   'customer_phone', $6,
+                   'customer_address', $7,
+                   'scheduled_date', $8,
+                   'scheduled_time', $9)
+                )      
+            )
+            `, 
+            [
+             appointment.id,
+             sendAt,
+             chosenTechnician.phone,
+             chosenTechnician.name,
+             customer.name,
+             customer.phone,
+             customer.address,
+             sd,
+             st
+            ]
+         );
+
+        /*----Insert logs----*/ 
         await client.query(
             `INSERT INTO logs(owner_id, appointment_id, technician_id, event, description)
             VALUES ($1,$2,$3,$4,$5)`,
@@ -157,9 +174,9 @@ export const createAppointment = async(req,res)=>{
                 ? "Diagnosis appointment created and technician auto-assigned" 
                 : "Diagnosis appointment created but no technician available"
             ]
-        );
-
-        if (!chosenTechnicianId) {
+          );
+        }
+      
          await client.query("COMMIT");
          console.log(req.body);
          console.log(appointment);
@@ -169,7 +186,6 @@ export const createAppointment = async(req,res)=>{
             customer,
             autoAssignedTechnicianId:chosenTechnicianId,
         });
-    } 
 
     }catch(err){
         console.log(req.body);

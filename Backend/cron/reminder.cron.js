@@ -4,7 +4,7 @@ import { sendTechnicianReminder } from "../utils/messages/technicianReminder.js"
 
 cron.schedule("* * * * *", async () => {
     const { rows } = await pool.query(
-        "SELECT * FROM reminders WHERE send_at <= now() AND status= 'pending'"
+        "SELECT * FROM reminders WHERE send_at <= now() AND status= 'pending' AND attempts < 5"
     );
 
     for (const r of rows) {
