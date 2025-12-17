@@ -2,9 +2,9 @@ import cron from 'node-cron';
 import pool from '../db.js';
 import { sendTechnicianReminder } from "../utils/messages/technicianReminder.js";
 
-cron.schedule("* * * *", async () => {
+cron.schedule("* * * * *", async () => {
     const { rows } = await pool.query(
-        "SELECT * FROM reminders WHERE send_at <= now() AND status= 'pennding'"
+        "SELECT * FROM reminders WHERE send_at <= now() AND status= 'pending'"
     );
 
     for (const r of rows) {

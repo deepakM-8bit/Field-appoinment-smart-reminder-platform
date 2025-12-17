@@ -84,7 +84,7 @@ export const createAppointment = async(req,res)=>{
                     FROM appointments
                     WHERE technician_id=$1
                       AND scheduled_date=$2;
-                `[chosenTechnicianId,sd]);
+                `[tech.id,sd]);
 
                 const workloadMinutes = Number(workload.rows[0].minutes)||0;
 
@@ -127,19 +127,24 @@ export const createAppointment = async(req,res)=>{
         await client.query(
             `INSERT INTO reminders (appointment_id, send_at, type, meta)
             VALUES (
-              $appointmentId,
-              $sendAt,
+              $1,
+              $2,
               'technician_reminder',
               json_build_object(
-                 'technician_phone', $technicianPhone,
-                 'technician_name', $technicianName,
-                 'customer_name', $customerName,
-                 'customer_phone', $customerPhone,
-                 'customer_address', $customerAddress,
-                 'scheduled_date', $sheduledDate,
-                 'scheduled_time', $scheduledTime)
-            )`      
-        );
+                 'technician_phone', $3,
+                 'technician_name', $4,
+                 'customer_name', $5,
+                 'customer_phone', $6,
+                 'customer_address', $7,
+                 'scheduled_date', $8,
+                 'scheduled_time', $9)
+            )      
+        )
+         `, 
+         [
+            appointment.id,
+            sendAt,
+         ];
 
         await client.query(
             `INSERT INTO logs(owner_id, appointment_id, technician_id, event, description)
@@ -154,16 +159,18 @@ export const createAppointment = async(req,res)=>{
             ]
         );
 
-        await client.query("COMMIT");
-        console.log(req.body);
-        console.log(appointment);
-        return res.status(201).json({
+        if (!chosenTechnicianId) {
+         await client.query("COMMIT");
+         console.log(req.body);
+         console.log(appointment);
+         return res.status(201).json({
             message:"Diagnosis appointment created",
             appointment,
             customer,
             autoAssignedTechnicianId:chosenTechnicianId,
         });
-        
+    } 
+
     }catch(err){
         console.log(req.body);
         await client.query("ROLLBACK");
