@@ -1,6 +1,6 @@
 import pool from "../db.js";
 import crypto from "crypto";
-import { sendMessage } from "../utils/messaging/sendMessage.js";
+import { sendMessage } from "../utils/sendWhatsapp.js";
 
 export const requestDiagnosisOtp = async (req, res) => {
   const appointmentId = req.params.id;
