@@ -20,7 +20,7 @@ export const requestDiagnosisOtp = async (req, res) => {
         AND a.technician_id = $2
         AND a.status = 'diagnosis_scheduled'
       `,
-      [appointmentId, technicianId]
+      [appointmentId, technicianId
     );
 
     if (!apptRes.rows.length) {
