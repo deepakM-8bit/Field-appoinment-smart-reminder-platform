@@ -1,4 +1,4 @@
-import { sendWhatsappTemplate } from "../sendWhatsapp.js";
+import { sendWhatsappTemplate } from "../sendEmail.js";
 
 export async function sendTechnicianReminder({
     technicianPhone,
