@@ -139,10 +139,10 @@ export const createAppointment = async(req,res)=>{
                  $2,
                  'technician_reminder',
                  jsonb_build_object(
-                   'technician_phone', $3,
+                   'technician_email', $3,
                    'technician_name', $4,
                    'customer_name', $5,
-                   'customer_phone', $6,
+                   'customer_email', $6,
                    'customer_address', $7,
                    'scheduled_date', $8,
                    'scheduled_time', $9)
@@ -152,10 +152,10 @@ export const createAppointment = async(req,res)=>{
             [
              appointment.id,
              sendAt,
-             chosenTechnician.phone,
+             chosenTechnician.email,
              chosenTechnician.name,
              customer.name,
-             customer.phone,
+             customer.email,
              customer.address,
              sd,
              st
