@@ -1,28 +1,36 @@
-import { sendWhatsappTemplate } from "../sendEmail.js";
+import { sendEmail} from "../sendEmail.js";
+
+const ownerResult = await pool.query(
+    "SELECT name FROM users WHERE id=$1",
+    [listAppointment.owner_id]
+);
+const businessName = ownerResult.rows[0].name;
 
 export async function sendTechnicianReminder({
-    technicianPhone,
+    technicianEmail,
     technicianName,
+    technicianPhone,
     customerName,
     customerPhone,
+    customerEmail,
     customerAddress,
-    sheduledDate,
-    sheduledTime
+    scheduledDate,
+    scheduledTime
 }) {
-    return sendWhatsappTemplate({
-        to:technicianPhone,
-        templateName: "technician_reminder_v1",
-        components: [
-            {
-                type: "body",
-                parameters: [
-                    { type:"text", text: technicianName },
-                    { type:"text", text: customerName},
-                    { type:"text", text: customerPhone},
-                    { type:"text", text: customerAddress},
-                    { type:"text", text: `${scheduledDate} ${scheduledTime}`}
-                ]
-            }
-        ]
+    return sendEmail({
+        to:technicianEmail,
+        subject: "New Diagnosis Appointment Assigned",
+        html:`
+            <p>${businessName}</p>
+            <p>Hello ${technicianName}, <br>
+            You have a new diagnosis appointment</p>
+
+            <ul>
+            <li>Customer: ${customerName}</li>
+            <li>Phone: ${customerPhone}</li>
+            <li>Address: ${customerAddress}</li>
+            <li>Date & Time: ${scheduledDate} ${scheduledTime}</li>
+            </ul>
+        `
     });
 }
