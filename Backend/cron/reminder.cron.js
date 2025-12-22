@@ -13,6 +13,7 @@ cron.schedule("* * * * *", async () => {
                 await sendTechnicianReminder({
                     technicianEmail: r.meta.technician_phone,
                     technicianName: r.meta.technician_name,
+                    technicianPhone: r.meta.technician_phone,
                     customerName: r.meta.customer_name,
                     customerPhone: r.meta.customer_phone,
                     customerAddress: r.meta.customer_address,

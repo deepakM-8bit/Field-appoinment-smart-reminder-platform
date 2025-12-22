@@ -109,8 +109,8 @@ export const createAppointment = async(req,res)=>{
                 }
             }
             if(bestTech){
-                chosenTechnicianId = bestTech.id;
-                chosenTechnician = tech;
+                chosenTechnician = technicians.find(t => t.id === bestTech.id);
+                chosenTechnicianId = chosenTechnician.id;
             }
         }
 
@@ -141,7 +141,7 @@ export const createAppointment = async(req,res)=>{
                  jsonb_build_object(
                    'technician_email', $3,
                    'technician_name', $4,
-                   'technician_phone', $5
+                   'technician_phone', $5,
                    'customer_name', $6,
                    'customer_email', $7,
                    'customer_address', $8,
