@@ -9,10 +9,8 @@ const businessName = ownerResult.rows[0].name;
 export async function sendTechnicianReminder({
     technicianEmail,
     technicianName,
-    technicianPhone,
     customerName,
     customerPhone,
-    customerEmail,
     customerAddress,
     scheduledDate,
     scheduledTime

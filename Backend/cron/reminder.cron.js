@@ -11,7 +11,7 @@ cron.schedule("* * * * *", async () => {
         try {
             if (r.type === "technician_reminder") {
                 await sendTechnicianReminder({
-                    technicianPhone: r.meta.technician_phone,
+                    technicianEmail: r.meta.technician_phone,
                     technicianName: r.meta.technician_name,
                     customerName: r.meta.customer_name,
                     customerPhone: r.meta.customer_phone,

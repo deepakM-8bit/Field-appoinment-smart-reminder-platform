@@ -1,6 +1,12 @@
 import pool from "../db.js";
 import crypto from "crypto";
-import { sendMessage } from "../utils/sendEmail.js";
+import { sendEmail } from "../utils/sendEmail.js";
+
+const ownerResult = await pool.query(
+    "SELECT name FROM users WHERE id=$1",
+    [listAppointment.owner_id]
+);
+const businessName = ownerResult.rows[0].name;
 
 export const requestDiagnosisOtp = async (req, res) => {
   const appointmentId = req.params.id;
@@ -44,10 +50,15 @@ export const requestDiagnosisOtp = async (req, res) => {
       [appointmentId, otp]
     );
 
-    await sendMessage({
+    await sendEmail({
       to: appointment.customer_phone,
-      message: `Your OTP for diagnosis is ${otp}. Valid for 5 minutes.`,
-      type: "otp"
+      subject: `OTP for diagnosis`,
+      html:`
+      <p><b>${businessName}</b></p>
+      <p>Your OTP for diagnosis is:</p>
+      <h2>${otp}</h2>
+      <p>This OTP is valid for 5 minutes
+      ` 
     });
 
     await client.query(
