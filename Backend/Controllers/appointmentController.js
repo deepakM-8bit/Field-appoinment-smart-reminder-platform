@@ -61,6 +61,10 @@ export const createAppointment = async(req,res)=>{
 
             for(const tech of technicians){
 
+                if(!tech.email){
+                    continue;
+                }
+
                 const normalizedReqCategory = category.toLowerCase().replace(/\s+/g, '');
 
                 const techCategories = tech.category
@@ -93,7 +97,9 @@ export const createAppointment = async(req,res)=>{
                     FROM appointments
                     WHERE technician_id=$1
                       AND scheduled_date=$2;
-                `[tech.id,sd]);
+                `,
+                [tech.id,sd]
+            );
 
                 const workloadMinutes = Number(workload.rows[0].minutes)||0;
 
@@ -146,15 +152,14 @@ export const createAppointment = async(req,res)=>{
                  $2,
                  'technician_reminder',
                  jsonb_build_object(
-                   'technician_email', $3,
-                   'technician_name', $4,
-                   'technician_phone', $5,
-                   'customer_name', $6,
-                   'customer_email', $7,
-                   'customer_address', $8,
-                   'customer_phone', $9,
-                   'scheduled_date', $10,
-                   'scheduled_time', $11
+                   'technician_email', $3::text,
+                   'technician_name', $4::text,
+                   'customer_name', $5::text,
+                   'customer_address', $6::text,
+                   'customer_phone', $7::text,
+                   'business_name', $8::text,
+                   'scheduled_date', $9::date,
+                   'scheduled_time', $10::time
                 )      
             )
             `, 
@@ -163,11 +168,10 @@ export const createAppointment = async(req,res)=>{
              sendAt,
              chosenTechnician.email,
              chosenTechnician.name,
-             chosenTechnician.phone,
              customer.name,
-             customer.email,
              customer.address,
              customer.phone,
+             businessName,
              sd,
              st
             ]
@@ -182,13 +186,13 @@ export const createAppointment = async(req,res)=>{
                 $2,
                 'customer_reminder',
                 jsonb_build_object(
-                  'business_name', $3,
-                  'customer_email', $4,
-                  'customer_name', $5,
-                  'technician_name', $6,
-                  'technician_phone', $7,
-                  'scheduled_date', $8,
-                  'scheduled_time', $9
+                  'business_name', $3::text,
+                  'customer_email', $4::text,
+                  'customer_name', $5::text,
+                  'technician_name', $6::text,
+                  'technician_phone', $7::text,
+                  'scheduled_date', $8::date,
+                  'scheduled_time', $9::time
                  )
                 )
                 `,

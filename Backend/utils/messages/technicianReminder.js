@@ -1,17 +1,12 @@
 import { sendEmail} from "../sendEmail.js";
 
-const ownerResult = await pool.query(
-    "SELECT name FROM users WHERE id=$1",
-    [listAppointment.owner_id]
-);
-const businessName = ownerResult.rows[0].name;
-
 export async function sendTechnicianReminder({
     technicianEmail,
     technicianName,
     customerName,
     customerPhone,
     customerAddress,
+    businessName,
     scheduledDate,
     scheduledTime
 }) {

@@ -11,7 +11,7 @@ export async function sendCustomerReminder({
 }) {
   return sendEmail({
     to: customerEmail,
-    subject: `Appointment Reminder – ${businessName}`,
+    subject: `Appointment Reminder - ${businessName}`,
     html: `
       <p>Hello <b>${customerName}</b>,</p>
 

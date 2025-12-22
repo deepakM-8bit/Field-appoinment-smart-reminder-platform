@@ -1,6 +1,8 @@
 import cron from 'node-cron';
 import pool from '../db.js';
 import { sendTechnicianReminder } from "../utils/messages/technicianReminder.js";
+import { sendCustomerReminder } from "../utils/messages/customerReminder.js";
+
 
 cron.schedule("* * * * *", async () => {
     const { rows } = await pool.query(
@@ -11,14 +13,35 @@ cron.schedule("* * * * *", async () => {
         try {
             if (r.type === "technician_reminder") {
                 await sendTechnicianReminder({
-                    technicianEmail: r.meta.technician_phone,
+                    technicianEmail: r.meta.technician_email,
                     technicianName: r.meta.technician_name,
-                    technicianPhone: r.meta.technician_phone,
+                    businessName: r.meta.business_name,
                     customerName: r.meta.customer_name,
                     customerPhone: r.meta.customer_phone,
                     customerAddress: r.meta.customer_address,
                     scheduledDate: r.meta.scheduled_date,
                     scheduledTime: r.meta.scheduled_time
+                });
+            }
+
+            if (r.type === "customer_reminder") {
+                if(!r.meta.customer.email) {
+                    await pool.query(
+                        "UPDATE reminders SET status='skipped' WHERE id=$1",
+                        [r.id]
+                    );
+                    continue;
+                }
+
+                await sendCustomerReminder({
+                    customerEmail: r.meta.customer_email,
+                    customerName: r.meta.customer_name,
+                    businessName: r.meta.business_name,
+                    technicianName: r.meta.technician_name,
+                    technicianPhone: r.meta.technician_phone,
+                    technicianPhone: r.meta.technician_phone,
+                    scheduledDate: r.meta.scheduled_date,
+                    scheduledTime: r.meta.schedule_time 
                 });
             }
 

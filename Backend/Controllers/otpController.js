@@ -2,12 +2,6 @@ import pool from "../db.js";
 import crypto from "crypto";
 import { sendEmail } from "../utils/sendEmail.js";
 
-const ownerResult = await pool.query(
-    "SELECT name FROM users WHERE id=$1",
-    [listAppointment.owner_id]
-);
-const businessName = ownerResult.rows[0].name;
-
 export const requestDiagnosisOtp = async (req, res) => {
   const appointmentId = req.params.id;
   const technicianId = req.user.id; // technician token
@@ -19,7 +13,8 @@ export const requestDiagnosisOtp = async (req, res) => {
 
     const apptRes = await client.query(
       `
-      SELECT a.*, c.phone AS customer_phone
+      SELECT a.*, c.phone AS customer_phone, 
+      c.email AS customer_email
       FROM appointments a
       JOIN customers c ON c.id = a.customer_id
       WHERE a.id = $1
@@ -51,7 +46,7 @@ export const requestDiagnosisOtp = async (req, res) => {
     );
 
     await sendEmail({
-      to: appointment.customer_phone,
+      to: appointment.customer_email,
       subject: `OTP for diagnosis`,
       html:`
       <p><b>${businessName}</b></p>
