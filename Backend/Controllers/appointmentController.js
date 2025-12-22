@@ -8,7 +8,7 @@ function timeToMinutes(timestr){
 
 //admin create appointment (diagnosis/repair)
 export const createAppointment = async(req,res)=>{
-    const {name,phoneno,address,category,sd,st} = req.body;
+    const {name,phoneno,email,address,category,sd,st} = req.body;
     const userId = req.user.id;
 
     if(!phoneno || !category || !sd || !st){
@@ -20,6 +20,13 @@ export const createAppointment = async(req,res)=>{
     try{
         await client.query("BEGIN");
 
+        const ownerRes = await client.query(
+          "SELECT name FROM users WHERE id=$1",
+          [userId]
+        );
+        const businessName = ownerRes.rows[0].name;
+
+
         const existingCustomer = await client.query("SELECT * FROM customers WHERE phone=$1 AND owner_id=$2",
             [phoneno, userId]   
         );
@@ -27,8 +34,8 @@ export const createAppointment = async(req,res)=>{
         let customer;
        
         if(existingCustomer.rows.length === 0){
-            const addCustomer = await client.query("INSERT INTO customers (owner_id, name, phone, address) VALUES ($1,$2,$3,$4) RETURNING *",
-                [userId, name, phoneno, address]);
+            const addCustomer = await client.query("INSERT INTO customers (owner_id, name, phone, email, address) VALUES ($1,$2,$3,$4,$5) RETURNING *",
+                [userId, name, phoneno, email, address]);
 
                 customer = addCustomer.rows[0];
         }else{
@@ -147,7 +154,7 @@ export const createAppointment = async(req,res)=>{
                    'customer_address', $8,
                    'customer_phone', $9,
                    'scheduled_date', $10,
-                   'scheduled_time', $11)
+                   'scheduled_time', $11
                 )      
             )
             `, 
@@ -156,15 +163,48 @@ export const createAppointment = async(req,res)=>{
              sendAt,
              chosenTechnician.email,
              chosenTechnician.name,
-             chosenTechnician.phoneno,
+             chosenTechnician.phone,
              customer.name,
              customer.email,
              customer.address,
-             customer.phoneno,
+             customer.phone,
              sd,
              st
             ]
          );
+
+         if(customer.email) {
+            await client.query(
+                `
+                INSERT INTO reminders (appointment_id, send_at, type, meta)
+                VALUES (
+                $1,
+                $2,
+                'customer_reminder',
+                jsonb_build_object(
+                  'business_name', $3,
+                  'customer_email', $4,
+                  'customer_name', $5,
+                  'technician_name', $6,
+                  'technician_phone', $7,
+                  'scheduled_date', $8,
+                  'scheduled_time', $9
+                 )
+                )
+                `,
+                [
+                   appointment.id,
+                   sendAt,
+                   businessName,
+                   customer.email,
+                   customer.name,
+                   chosenTechnician.name,
+                   chosenTechnician.phone,
+                   sd,
+                   st                   
+                ]
+            );
+         }
 
         /*----Insert logs----*/ 
         await client.query(
