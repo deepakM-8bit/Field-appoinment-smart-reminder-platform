@@ -25,7 +25,7 @@ cron.schedule("* * * * *", async () => {
             }
 
             if (r.type === "customer_reminder") {
-                if(!r.meta.customer.email) {
+                if(!r.meta.customer_email) {
                     await pool.query(
                         "UPDATE reminders SET status='skipped' WHERE id=$1",
                         [r.id]
@@ -39,9 +39,8 @@ cron.schedule("* * * * *", async () => {
                     businessName: r.meta.business_name,
                     technicianName: r.meta.technician_name,
                     technicianPhone: r.meta.technician_phone,
-                    technicianPhone: r.meta.technician_phone,
                     scheduledDate: r.meta.scheduled_date,
-                    scheduledTime: r.meta.schedule_time 
+                    scheduledTime: r.meta.scheduled_time 
                 });
             }
 

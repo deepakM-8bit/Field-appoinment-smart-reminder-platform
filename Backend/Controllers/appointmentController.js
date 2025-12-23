@@ -127,7 +127,9 @@ export const createAppointment = async(req,res)=>{
             }
         }
 
-        const status = chosenTechnicianId ? "diagnosis_scheduled" : "waiting_for_assignment";
+        const status = chosenTechnicianId 
+         ? "diagnosis_scheduled" 
+         : "waiting_for_assignment";
 
         /*----Appointment insert----*/
         const insertAppointment = await client.query(

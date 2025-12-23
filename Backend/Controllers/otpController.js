@@ -3,6 +3,11 @@ import crypto from "crypto";
 import { sendEmail } from "../utils/sendEmail.js";
 
 export const requestDiagnosisOtp = async (req, res) => {
+
+  if (req.user.role !== "technician") {
+    return res.status(403).json({ message: "Access denied" });
+  }
+
   const appointmentId = req.params.id;
   const technicianId = req.user.id; // technician token
 
@@ -29,6 +34,23 @@ export const requestDiagnosisOtp = async (req, res) => {
     }
 
     const appointment = apptRes.rows[0];
+
+    const recentOtpCount = await client.query(
+      `
+      SELECT COUNT(*)
+      FROM otp_codes
+      WHERE appointment_id= $1
+        AND type = 'start_diagnosis
+        AND created_at > now() - interval '5 minutes'
+        `,
+        [appointmentId]
+    );
+
+    if(Number(recentOtpCount.rows[0].count) >= 3) {
+      return res.status(429).json({
+        message:"Too many OTP request. Please wait 5 minutes."
+      });
+    }
 
     // generate 6-digit OTP
     const otp = crypto.randomInt(100000, 999999).toString();
@@ -84,6 +106,11 @@ export const requestDiagnosisOtp = async (req, res) => {
 };
 
 export const verifyDiagnosisOtp = async (req, res) => {
+  
+  if (req.user.role !== "technician") {
+    return res.status(403).json({ message: "Access denied" });
+  }
+
   const appointmentId = req.params.id;
   const technicianId = req.user.id;
   const { otp } = req.body;
