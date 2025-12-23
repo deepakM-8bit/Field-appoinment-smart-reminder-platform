@@ -1,3 +1,4 @@
+import { application } from "express";
 import pool from "../db.js";
 
 function timeToMinutes(timestr){
@@ -243,6 +244,140 @@ export const createAppointment = async(req,res)=>{
         console.error("error creating diagnosis appoinment:",err);
         return res.status(500).json({message:"internal server error"});
     }finally{
+        client.release();
+    }
+};
+
+export const completeDiagnosis = async (req,res) => {
+    const appointmentId = req.params.id;
+    const technicianId = req.user.id;
+
+    const{
+        issue_description,
+        requires_part,
+        estimated_duration,
+        estimated_cost,
+        suggested_repair_date,
+        suggested_repair_time
+    } = req.body;
+
+    if(
+        !issue_description ||
+        !estimated_duration ||
+        !estimated_cost ||
+        !requires_part ||
+        !suggested_repair_date
+    ) {
+        return res.status(400).json({message: "missing diagnosis details"});
+    }
+
+    const client = await pool.connect();
+
+    try{
+        await client.query("BEGIN");
+
+        //validate appointment + technician
+        const apptRes = await client.query(
+            `
+            SELECT 
+            a.*,
+            c.email AS customer_email,
+            c.name AS customer_name,
+            u.name AS business_name
+            FROM appointments a
+            JOIN customers c ON c.id = a.customer_id
+            JOIN users u ON u.id = a.owner_id
+            WHERE a.id = $1
+             AND a.technician_id = $2
+             AND a.status = 'diagnosis_in_progress'
+             `,
+             [appointmentId, technicianId]
+        );
+
+        if(!apptRes.rows.length) {
+            await client.query("ROLLBACK");
+            return res.status(400).json({
+                message:"Invalid appointment state for diagnosis completion"
+            });
+        }
+
+        const appointment = apptRes.rows[0];
+
+        //update appointment with diagnosis result
+        await client.query(
+            `
+            UPDATE appointments
+            SET
+              issue_description = $1,
+              requires_parts = $2,
+              estimated_duration = $3,
+              estimated_cost = $4,
+              status = 'diagnosis_complete_waiting_approval',
+              created_at = now()
+            WHERE id = $5
+            `,
+            [
+                issue_description,
+                requires_part,
+                estimated_duration,
+                estimated_cost,
+                appointmentId
+            ]
+        );
+
+        //send quote email to customer
+        if (appointment.customer_email) {
+          await sendEmail({
+            to: appointment.customer_email,
+            subject: 'Repair Qoute - Approval Required',
+            html:`
+              <p>Hello <b>${appointment.customer.name}</b>,</p>
+              
+              <p>Your service diagnosis has been completed by <b>${appointment.business_name}</b>.</p>
+
+              <p>Issue Identified:${issue_description}</p>
+              <p>Estimated Cost:${estimated_cost}</p>
+              <p>suggested Repair Schedule:${suggested_repair_date} at ${suggested_repair_time}</p>
+              
+              <p>Kindly confirm to proceed with the repair</p>
+              
+              <p>Thank You!</p>
+              `
+          });
+        }
+
+        //Insert logs
+        await client.query(
+            `
+            INSERT INTO logs(
+            owner_id,
+            appointment_id,
+            technician_id,
+            event,
+            description
+            )
+            VALUES ($1,$2,$3,$4,$5)
+            `,
+            [
+                appointment.owner_id,
+                appointmentId,
+                technicianId,
+                "diagnosis_completed",
+                "Diagnosis completed and qoute sent to customer"
+            ]
+        );
+
+        await client.query("COMMIT");
+
+        return res.json({
+            message:"Diagnosis completed and qoute sent for approval"
+        });
+
+    } catch(err) {
+        await client.query("ROLLBACK");
+        console.error("diagnosis completion failed:",err);
+        return res.status(500).json({message: "Internal server error"});
+    } finally {
         client.release();
     }
 };

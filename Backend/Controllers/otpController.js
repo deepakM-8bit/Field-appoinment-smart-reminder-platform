@@ -40,7 +40,7 @@ export const requestDiagnosisOtp = async (req, res) => {
       SELECT COUNT(*)
       FROM otp_codes
       WHERE appointment_id= $1
-        AND type = 'start_diagnosis
+        AND type = 'start_diagnosis'
         AND created_at > now() - interval '5 minutes'
         `,
         [appointmentId]
@@ -71,7 +71,6 @@ export const requestDiagnosisOtp = async (req, res) => {
       to: appointment.customer_email,
       subject: `OTP for diagnosis`,
       html:`
-      <p><b>${businessName}</b></p>
       <p>Your OTP for diagnosis is:</p>
       <h2>${otp}</h2>
       <p>This OTP is valid for 5 minutes
@@ -106,7 +105,7 @@ export const requestDiagnosisOtp = async (req, res) => {
 };
 
 export const verifyDiagnosisOtp = async (req, res) => {
-  
+
   if (req.user.role !== "technician") {
     return res.status(403).json({ message: "Access denied" });
   }
@@ -156,7 +155,7 @@ export const verifyDiagnosisOtp = async (req, res) => {
       `
       UPDATE appointments
       SET status = 'diagnosis_in_progress',
-          updated_at = now()
+          created_at = now()
       WHERE id = $1
         AND technician_id = $2
       `,

@@ -4,6 +4,7 @@ import authRouter from './Routers/authRouter.js';
 import technicianRouter from './Routers/technicianRouter.js';
 import customerRouter from './Routers/customerRouter.js';
 import appointmentRouter from './Routers/appointmentRouter.js';
+import otpRouter from './Routers/otpRouter.js';
 
 const app = express();
 const port = 3000;
@@ -16,6 +17,7 @@ app.use("/api/auth",authRouter);
 app.use("/api/technician",technicianRouter);
 app.use("/api/customer",customerRouter);
 app.use("/api/appointments",appointmentRouter);
+app.use("/api/",otpRouter);
 
 
 app.listen(port, ()=>{
