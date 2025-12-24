@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import "./cron/reminder.cron.js";
 import authRouter from './Routers/authRouter.js';
 import technicianRouter from './Routers/technicianRouter.js';
 import customerRouter from './Routers/customerRouter.js';

@@ -11,7 +11,9 @@ cron.schedule("* * * * *", async () => {
 
     for (const r of rows) {
         try {
-            if (r.type === "technician_reminder") {
+            if (r.type === "technician_reminder" ||
+                r.type === "technician_repair_reminder"
+            ) {
                 await sendTechnicianReminder({
                     technicianEmail: r.meta.technician_email,
                     technicianName: r.meta.technician_name,
@@ -24,7 +26,9 @@ cron.schedule("* * * * *", async () => {
                 });
             }
 
-            if (r.type === "customer_reminder") {
+            if (r.type === "customer_reminder" ||
+                r.type === "customer_repair_reminder"
+            ) {
                 if(!r.meta.customer_email) {
                     await pool.query(
                         "UPDATE reminders SET status='skipped' WHERE id=$1",
@@ -48,6 +52,8 @@ cron.schedule("* * * * *", async () => {
                 "UPDATE reminders SET status='sent', attempts=attempts+1 WHERE id=$1",
                 [r.id]
             );
+            
+            console.log("CRON picked reminder:", r.id, r.type);
 
         }catch(err){
             console.error("reminder failed:", err.message);
