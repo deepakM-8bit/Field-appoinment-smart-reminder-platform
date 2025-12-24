@@ -399,12 +399,24 @@ export const approveRepair = async (req,res) => {
 
         const diagRes = await client.query(
             `
-            SELECT *
-            FROM appointments
-            WHERE id = $1
-             AND appointment_type = 'diagnosis'
-             AND status = 'diagnosis_completed_waiting_approval'
-             AND owner_id = $2
+            SELECT 
+            a.*,
+            c.name AS customer_name,
+            c.phone AS customer_phone,
+            c.email AS customer_email,
+            c.address AS customer_address,
+            t.name AS technician_name,
+            t.email AS technician_email,
+            t.phone AS technician_phone,
+            u.name AS business_name
+             FROM appointments a
+             JOIN customers c ON c.id = a.customer_id
+             LEFT JOIN technicians t ON t.id = a.technician_id
+             JOIN users u ON u.id = a.owner_id
+             WHERE a.id = $1
+              AND a.appointment_type = 'diagnosis'
+              AND a.status = 'diagnosis_completed_waiting_approval'
+              AND a.owner_id = $2
              `,
              [diagnosisId, userId]      
         );
@@ -492,24 +504,24 @@ export const approveRepair = async (req,res) => {
                 $2,
                 'technician_repair_reminder',
                 jsonb_build_object(
-                   'technician_email', $3,
-                   'technician_name', $4,
-                   'customer_name', $5,
-                   'customer_phone', $6,
-                   'customer_address', $7,
-                   'business_name', $8,
-                   'scheduled_date', $9,
-                   'scheduled_time', $10
+                   'technician_email', $3::text,
+                   'technician_name', $4::text,
+                   'customer_name', $5::text,
+                   'customer_phone', $6::text,
+                   'customer_address', $7::text,
+                   'business_name', $8::text,
+                   'scheduled_date', $9::date,
+                   'scheduled_time', $10::time
                    )
                 )
                 `,
                 [
                     repair.id,
                     new Date(),
-                    diag.techncian_email,
+                    diag.technician_email,
                     diag.technician_name,
                     diag.customer_name,
-                    diag,customer_phone,
+                    diag.customer_phone,
                     diag.customer_address,
                     diag.business_name,
                     repair.scheduled_date,
@@ -527,13 +539,13 @@ export const approveRepair = async (req,res) => {
                 $2,
                 'customer_repair_reminder',
                 jsonb_build_object(
-                   'customer_email', $3,
-                   'customer_name', $4,
-                   'business_name', $5,
-                   'technician_name', $6,
-                   'technician_phone', $7,
-                   'scheduled_date', $8,
-                   'scheduled_time', $9
+                   'customer_email', $3::text,
+                   'customer_name', $4::text,
+                   'business_name', $5::text,
+                   'technician_name', $6::text,
+                   'technician_phone', $7::text,
+                   'scheduled_date', $8::date,
+                   'scheduled_time', $9::time
                    )
                 )
                 `,
@@ -541,10 +553,10 @@ export const approveRepair = async (req,res) => {
                     repair.id,
                     new Date(),
                     diag.customer_email,
-                    diag,customer_name,
+                    diag.customer_name,
                     diag.business_name,
                     diag.technician_name,
-                    diag.techncian_phone,
+                    diag.technician_phone,
                     repair.scheduled_date,
                     repair.scheduled_time
                 ]
@@ -568,6 +580,11 @@ export const approveRepair = async (req,res) => {
                  : "Repair created but technician unavailable"
             ]
         );
+
+        console.log({
+            technicianEmail: diag.technician_email,
+            customerEmail: diag.customer_email
+        });
 
         await client.query("COMMIT");
 
