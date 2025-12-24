@@ -248,13 +248,14 @@ export const createAppointment = async(req,res)=>{
     }
 };
 
+//diagnosis completion logic
 export const completeDiagnosis = async (req,res) => {
     const appointmentId = req.params.id;
     const technicianId = req.user.id;
 
     const{
         issue_description,
-        requires_part,
+        requires_parts,
         estimated_duration,
         estimated_cost,
         final_cost,
@@ -267,7 +268,7 @@ export const completeDiagnosis = async (req,res) => {
         !estimated_duration ||
         !estimated_cost ||
         !final_cost ||
-        !requires_part ||
+        !requires_parts ||
         !suggested_repair_date
     ) {
         return res.status(400).json({message: "missing diagnosis details"});
@@ -321,7 +322,7 @@ export const completeDiagnosis = async (req,res) => {
             `,
             [
                 issue_description,
-                requires_part,
+                requires_parts,
                 estimated_duration,
                 estimated_cost,
                 final_cost,
@@ -381,6 +382,136 @@ export const completeDiagnosis = async (req,res) => {
         await client.query("ROLLBACK");
         console.error("diagnosis completion failed:",err);
         return res.status(500).json({message: "Internal server error"});
+    } finally {
+        client.release();
+    }
+};
+
+//approve repair logic
+export const approveRepair = async (req,res) => {
+    const diagnosisId = req.params.id;
+    const userId = req.user.id; //admin
+
+    const client = await pool.connect();
+
+    try{
+        await client.query("BEGIN");
+
+        const diagRes = await client.query(
+            `
+            SELECT *
+            FROM appointments
+            WHERE id = $1
+             AND appointment_type = 'diagnosis'
+             AND status = 'diagnosis_completed_waiting_approval'
+             `,
+             [diagnosisId]      
+        );
+
+        if(!diagRes.rows.length) {
+            await client.query("ROLLBACK");
+            return res.status(400).json({
+                message: "Diagnosis not eligible for repair approval"
+            });
+        }
+
+        const diag = diagRes.rows[0];
+
+        let technicianId = diag.technician_id;
+        let repairStatus = "repair_scheduled";
+
+        if(technicianId) {
+            const workloadRes = await client.query(
+                `
+                SELECT COALESCE(
+                SUM(estimated_duration),0
+                ) AS minutes
+                 FROM appointments
+                 WHERE technician_id = $1
+                  AND scheduled_date = $2
+                  AND status IN ('repair_scheduled','reapir_in_progress')
+                  `,
+                  [technicianId,diag.scheduled_date]
+            );
+
+            const workloadMinutes = Number(workloadRes.rows[0].minutes);
+
+            if(workloadMinutes + diag.estimated_duration > 480) {
+                technicianId = null;
+                repairStatus = 'waiting_for_assignment';
+            }
+        }
+
+        const repairRes = await client.query(
+            `
+            INSERT INTO appointments (
+            owner_id,
+            customer_id,
+            technician_id,
+            appointment_type,
+            status,
+            category,
+            issue_description,
+            requires_parts,
+            estimated_duration,
+            estimated_cost,
+            final_cost,
+            scheduled_date,
+            scheduled_time,
+            created_at
+            )
+            VALUES (
+            $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,now()
+            )
+            RETURNING *
+            `,
+            [
+                diag.owner_id,
+                diag.customer_id,
+                technicianId,
+                repairStatus,
+                diag.category,
+                diag.issue_description,
+                diag.requires_parts,
+                diag.estimated_duration,
+                diag.estimated_cost,
+                diag.final_cost,
+                diag.scheduled_date,
+                diag.scheduled_time
+            ]
+        );
+
+        const repair = repairRes.rows[0];
+
+        await client.query(
+            `
+            INSERT INTO logs (
+            owner_id, appointment_id, technician_id, event, description
+            )
+            VALUES ($1,$2,$3,$4,$5)
+            `,
+            [
+                diag.owner_id,
+                repair.id,
+                technicianId,
+                "repair_created",
+                technicianId
+                 ? "Repair appointment auto-created"
+                 : "Repair created but technician unavailable"
+            ]
+        );
+
+        await client.query("COMMIT");
+
+        return res.json({
+            message: "Repair appointment created successfully",
+            repairAppointment: repair
+        });
+
+    } catch (err) {
+        await client.query("ROLLBACK");
+        console.error("Repair approval failed:", err);
+        return res.status(500).json({message:"Internal server error"});
     } finally {
         client.release();
     }
