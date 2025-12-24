@@ -518,6 +518,39 @@ export const approveRepair = async (req,res) => {
             );
         }
 
+        if(diag.customer_email) {
+            await client.query(
+                `
+                INSERT INTO reminders (appointment_id, send_at, type, meta)
+                VALUES (
+                $1,
+                $2,
+                'customer_repair_reminder',
+                jsonb_build_object(
+                   'customer_email', $3,
+                   'customer_name', $4,
+                   'business_name', $5,
+                   'technician_name', $6,
+                   'technician_phone', $7,
+                   'scheduled_date', $8,
+                   'scheduled_time', $9
+                   )
+                )
+                `,
+                [
+                    repair.id,
+                    new Date(),
+                    diag.customer_email,
+                    diag,customer_name,
+                    diag.business_name,
+                    diag.technician_name,
+                    diag.techncian_phone,
+                    repair.scheduled_date,
+                    repair.scheduled_time
+                ]
+            );
+        }
+
         await client.query(
             `
             INSERT INTO logs (
