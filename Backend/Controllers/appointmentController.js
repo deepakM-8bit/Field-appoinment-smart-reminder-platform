@@ -316,7 +316,7 @@ export const completeDiagnosis = async (req,res) => {
               estimated_duration = $3,
               estimated_cost = $4,
               final_cost = $5,
-              status = 'diagnosis_complete_waiting_approval',
+              status = 'diagnosis_completed_waiting_approval',
               created_at = now()
             WHERE id = $6
             `,
@@ -404,8 +404,9 @@ export const approveRepair = async (req,res) => {
             WHERE id = $1
              AND appointment_type = 'diagnosis'
              AND status = 'diagnosis_completed_waiting_approval'
+             AND owner_id = $2
              `,
-             [diagnosisId]      
+             [diagnosisId, userId]      
         );
 
         if(!diagRes.rows.length) {
@@ -457,11 +458,10 @@ export const approveRepair = async (req,res) => {
             estimated_cost,
             final_cost,
             scheduled_date,
-            scheduled_time,
-            created_at
+            scheduled_time  
             )
             VALUES (
-            $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,now()
+            $1,$2,$3,'repair',$4,$5,$6,$7,$8,$9,$10,$11,$12
             )
             RETURNING *
             `,
@@ -482,6 +482,41 @@ export const approveRepair = async (req,res) => {
         );
 
         const repair = repairRes.rows[0];
+
+        if(technicianId && diag.technician_email) {
+            await client.query(
+                `
+                INSERT INTO reminders (appointment_id, send_at, type, meta)
+                VALUES (
+                $1,
+                $2,
+                'technician_repair_reminder',
+                jsonb_build_object(
+                   'technician_email', $3,
+                   'technician_name', $4,
+                   'customer_name', $5,
+                   'customer_phone', $6,
+                   'customer_address', $7,
+                   'business_name', $8,
+                   'scheduled_date', $9,
+                   'scheduled_time', $10
+                   )
+                )
+                `,
+                [
+                    repair.id,
+                    new Date(),
+                    diag.techncian_email,
+                    diag.technician_name,
+                    diag.customer_name,
+                    diag,customer_phone,
+                    diag.customer_address,
+                    diag.business_name,
+                    repair.scheduled_date,
+                    repair.scheduled_time
+                ]
+            );
+        }
 
         await client.query(
             `

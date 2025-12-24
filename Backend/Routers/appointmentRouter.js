@@ -6,6 +6,6 @@ const router = express.Router();
 
 router.post("/diagnosis",authenticate,createAppointment)
 router.post("/:id/diagnosis-complete",authenticate,completeDiagnosis);
-router.post("/:id/approval-repair",authenticate,approveRepair)
+router.post("/:id/repair-approval",authenticate,approveRepair)
 
 export default router;
