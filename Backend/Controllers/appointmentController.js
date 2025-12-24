@@ -1,4 +1,4 @@
-import { application } from "express";
+import { sendEmail } from "../utils/sendEmail.js";
 import pool from "../db.js";
 
 function timeToMinutes(timestr){
@@ -257,6 +257,7 @@ export const completeDiagnosis = async (req,res) => {
         requires_part,
         estimated_duration,
         estimated_cost,
+        final_cost,
         suggested_repair_date,
         suggested_repair_time
     } = req.body;
@@ -265,6 +266,7 @@ export const completeDiagnosis = async (req,res) => {
         !issue_description ||
         !estimated_duration ||
         !estimated_cost ||
+        !final_cost ||
         !requires_part ||
         !suggested_repair_date
     ) {
@@ -312,15 +314,17 @@ export const completeDiagnosis = async (req,res) => {
               requires_parts = $2,
               estimated_duration = $3,
               estimated_cost = $4,
+              final_cost = $5,
               status = 'diagnosis_complete_waiting_approval',
               created_at = now()
-            WHERE id = $5
+            WHERE id = $6
             `,
             [
                 issue_description,
                 requires_part,
                 estimated_duration,
                 estimated_cost,
+                final_cost,
                 appointmentId
             ]
         );
@@ -331,7 +335,7 @@ export const completeDiagnosis = async (req,res) => {
             to: appointment.customer_email,
             subject: 'Repair Qoute - Approval Required',
             html:`
-              <p>Hello <b>${appointment.customer.name}</b>,</p>
+              <p>Hello <b>${appointment.customer_name}</b>,</p>
               
               <p>Your service diagnosis has been completed by <b>${appointment.business_name}</b>.</p>
 
@@ -339,7 +343,7 @@ export const completeDiagnosis = async (req,res) => {
               <p>Estimated Cost:${estimated_cost}</p>
               <p>suggested Repair Schedule:${suggested_repair_date} at ${suggested_repair_time}</p>
               
-              <p>Kindly confirm to proceed with the repair</p>
+              <p><b>Kindly confirm to proceed with the repair</b></p>
               
               <p>Thank You!</p>
               `
