@@ -326,7 +326,7 @@ export const completeDiagnosis = async (req,res) => {
                 estimated_duration,
                 estimated_cost,
                 final_cost,
-                appointmentId
+                
             ]
         );
 
