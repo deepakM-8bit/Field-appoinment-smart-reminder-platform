@@ -155,7 +155,7 @@ export const verifyDiagnosisOtp = async (req, res) => {
       `
       UPDATE appointments
       SET status = 'diagnosis_in_progress',
-          created_at = now()
+          updated_at = now()
       WHERE id = $1
         AND technician_id = $2
       `,

@@ -317,7 +317,7 @@ export const completeDiagnosis = async (req,res) => {
               estimated_cost = $4,
               final_cost = $5,
               status = 'diagnosis_completed_waiting_approval',
-              created_at = now()
+              updated_at = now()
             WHERE id = $6
             `,
             [
