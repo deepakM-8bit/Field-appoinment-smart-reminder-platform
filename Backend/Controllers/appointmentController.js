@@ -326,14 +326,14 @@ export const completeDiagnosis = async (req,res) => {
                 estimated_duration,
                 estimated_cost,
                 final_cost,
-                
+                appointmentId
             ]
         );
 
         //send quote email to customer
         if (appointment.customer_email) {
           await sendEmail({
-            to: appointment.customer_email,
+            to: appointment.
             subject: 'Repair Qoute - Approval Required',
             html:`
               <p>Hello <b>${appointment.customer_name}</b>,</p>
