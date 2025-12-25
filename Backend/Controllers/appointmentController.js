@@ -333,7 +333,7 @@ export const completeDiagnosis = async (req,res) => {
         //send quote email to customer
         if (appointment.customer_email) {
           await sendEmail({
-            to: appointment.
+            to: appointment.customer_email,
             subject: 'Repair Qoute - Approval Required',
             html:`
               <p>Hello <b>${appointment.customer_name}</b>,</p>
@@ -395,6 +395,8 @@ export const approveRepair = async (req,res) => {
     const client = await pool.connect();
 
     try{
+        await client.query("BEGIN");
+
         await client.query("BEGIN");
 
         const diagRes = await client.query(
