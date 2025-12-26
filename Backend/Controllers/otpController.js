@@ -1,15 +1,16 @@
 import pool from "../db.js";
 import crypto from "crypto";
 import { sendEmail } from "../utils/sendEmail.js";
+import { OTP_CONFIG } from "../utils/otpConfig.js";
 
-export const requestDiagnosisOtp = async (req, res) => {
-
+export const requestOtp = (type) => async (req, res) => {
   if (req.user.role !== "technician") {
     return res.status(403).json({ message: "Access denied" });
   }
 
+  const cfg = OTP_CONFIG[type];
   const appointmentId = req.params.id;
-  const technicianId = req.user.id; // technician token
+  const technicianId = req.user.id;
 
   const client = await pool.connect();
 
@@ -18,63 +19,49 @@ export const requestDiagnosisOtp = async (req, res) => {
 
     const apptRes = await client.query(
       `
-      SELECT a.*, c.phone AS customer_phone, 
-      c.email AS customer_email
+      SELECT a.*, c.email AS customer_email
       FROM appointments a
       JOIN customers c ON c.id = a.customer_id
       WHERE a.id = $1
         AND a.technician_id = $2
-        AND a.status = 'diagnosis_scheduled'
+        AND a.status = $3
       `,
-      [appointmentId, technicianId]
+      [appointmentId, technicianId, cfg.allowedStatus]
     );
 
     if (!apptRes.rows.length) {
       return res.status(400).json({ message: "Invalid appointment state" });
     }
 
-    const appointment = apptRes.rows[0];
-
     const recentOtpCount = await client.query(
       `
       SELECT COUNT(*)
       FROM otp_codes
-      WHERE appointment_id= $1
-        AND type = 'start_diagnosis'
+      WHERE appointment_id = $1
+        AND type = $2
         AND created_at > now() - interval '5 minutes'
-        `,
-        [appointmentId]
+      `,
+      [appointmentId, type]
     );
 
-    if(Number(recentOtpCount.rows[0].count) >= 3) {
-      return res.status(429).json({
-        message:"Too many OTP request. Please wait 5 minutes."
-      });
+    if (Number(recentOtpCount.rows[0].count) >= 3) {
+      return res.status(429).json({ message: "Too many OTP requests" });
     }
 
-    // generate 6-digit OTP
     const otp = crypto.randomInt(100000, 999999).toString();
 
     await client.query(
       `
-      INSERT INTO otp_codes (
-        appointment_id, otp_code, type, expires_at
-      )
-      VALUES (
-        $1, $2, 'start_diagnosis', now() + interval '5 minutes'
-      )
+      INSERT INTO otp_codes (appointment_id, otp_code, type, expires_at)
+      VALUES ($1,$2,$3, now() + interval '5 minutes')
       `,
-      [appointmentId, otp]
+      [appointmentId, otp, type]
     );
 
     await sendEmail({
-      to: appointment.customer_email,
-      subject: `OTP for diagnosis`,
-      html:`
-      <p>Your OTP for diagnosis is:</p>
-      <h2>${otp}</h2>
-      <p>This OTP is valid for 5 minutes
-      ` 
+      to: apptRes.rows[0].customer_email,
+      subject: cfg.emailSubject,
+      html: `<p>Your OTP is:</p><h2>${otp}</h2>`
     });
 
     await client.query(
@@ -83,109 +70,21 @@ export const requestDiagnosisOtp = async (req, res) => {
       VALUES ($1,$2,$3,$4,$5)
       `,
       [
-        appointment.owner_id,
+        apptRes.rows[0].owner_id,
         appointmentId,
         technicianId,
-        "otp_sent",
-        "Diagnosis OTP sent to customer"
+        cfg.logEventSend,
+        `OTP sent for ${type}`
       ]
     );
 
     await client.query("COMMIT");
-
-    return res.json({ message: "OTP sent to customer" });
+    res.json({ message: "OTP sent successfully" });
 
   } catch (err) {
     await client.query("ROLLBACK");
-    console.error("OTP request failed:", err);
-    return res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
   } finally {
     client.release();
   }
 };
-
-export const verifyDiagnosisOtp = async (req, res) => {
-
-  if (req.user.role !== "technician") {
-    return res.status(403).json({ message: "Access denied" });
-  }
-
-  const appointmentId = req.params.id;
-  const technicianId = req.user.id;
-  const { otp } = req.body;
-
-  if (!otp) {
-    return res.status(400).json({ message: "OTP required" });
-  }
-
-  const client = await pool.connect();
-
-  try {
-    await client.query("BEGIN");
-
-    const otpRes = await client.query(
-      `
-      SELECT *
-      FROM otp_codes
-      WHERE appointment_id = $1
-        AND otp_code = $2
-        AND type = 'start_diagnosis'
-        AND used = false
-        AND expires_at > now()
-      ORDER BY created_at DESC
-      LIMIT 1
-      `,
-      [appointmentId, otp]
-    );
-
-    if (!otpRes.rows.length) {
-      return res.status(400).json({ message: "Invalid or expired OTP" });
-    }
-
-    await client.query(
-      `
-      UPDATE otp_codes
-      SET used = true
-      WHERE id = $1
-      `,
-      [otpRes.rows[0].id]
-    );
-
-    await client.query(
-      `
-      UPDATE appointments
-      SET status = 'diagnosis_in_progress',
-          updated_at = now()
-      WHERE id = $1
-        AND technician_id = $2
-      `,
-      [appointmentId, technicianId]
-    );
-
-    await client.query(
-      `
-      INSERT INTO logs (owner_id, appointment_id, technician_id, event, description)
-      VALUES ($1,$2,$3,$4,$5)
-      `,
-      [
-        req.user.owner_id || null,
-        appointmentId,
-        technicianId,
-        "otp_verified",
-        "Diagnosis OTP verified, diagnosis started"
-      ]
-    );
-
-    await client.query("COMMIT");
-
-    return res.json({ message: "OTP verified. Diagnosis started." });
-
-  } catch (err) {
-    await client.query("ROLLBACK");
-    console.error("OTP verify failed:", err);
-    return res.status(500).json({ message: "Internal server error" });
-  } finally {
-    client.release();
-  }
-};
-
