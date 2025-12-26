@@ -1,4 +1,5 @@
 import { sendEmail } from "../utils/sendEmail.js";
+import { notifyAdmin } from "../utils/notifyAdmin.js";
 import pool from "../db.js";
 
 function timeToMinutes(timestr){
@@ -144,6 +145,15 @@ export const createAppointment = async(req,res)=>{
 
         const appointment = insertAppointment.rows[0];
 
+        if(!chosenTechnicianId) {
+            await notifyAdmin({
+                ownerId: userId,
+                subject: "Diagnosis requires manual assignment",
+                message: `Diagnosis appointment (ID: ${appointment.id}) was created but
+                no technician was available for category "${category}".`
+            });
+        }
+
         /*----Reminder insert----*/
         if(chosenTechnicianId){
             const sendAt = new Date();
@@ -162,7 +172,8 @@ export const createAppointment = async(req,res)=>{
                    'customer_phone', $7::text,
                    'business_name', $8::text,
                    'scheduled_date', $9::date,
-                   'scheduled_time', $10::time
+                   'scheduled_time', $10::time,
+                   'onwer_id', $11::text
                 )      
             )
             `, 
@@ -176,7 +187,8 @@ export const createAppointment = async(req,res)=>{
              customer.phone,
              businessName,
              sd,
-             st
+             st,
+             userId
             ]
          );
 
@@ -195,7 +207,8 @@ export const createAppointment = async(req,res)=>{
                   'technician_name', $6::text,
                   'technician_phone', $7::text,
                   'scheduled_date', $8::date,
-                  'scheduled_time', $9::time
+                  'scheduled_time', $9::time,
+                  'owner_id', $10::text
                  )
                 )
                 `,
@@ -208,7 +221,8 @@ export const createAppointment = async(req,res)=>{
                    chosenTechnician.name,
                    chosenTechnician.phone,
                    sd,
-                   st                   
+                   st,
+                   userId                   
                 ]
             );
          }
@@ -495,6 +509,15 @@ export const approveRepair = async (req,res) => {
 
         const repair = repairRes.rows[0];
 
+        if(!technicianId) {
+            await notifyAdmin({
+                ownerId: userId,
+                subject: "Repair appointment unassigned",
+                message: `Repair appointment (ID: ${repair.id}) could not be auto-assigned 
+                due to technician capacity limits.`
+            });
+        }
+
         if(technicianId && diag.technician_email) {
             await client.query(
                 `
@@ -511,7 +534,8 @@ export const approveRepair = async (req,res) => {
                    'customer_address', $7::text,
                    'business_name', $8::text,
                    'scheduled_date', $9::date,
-                   'scheduled_time', $10::time
+                   'scheduled_time', $10::time,
+                   'onwer_id', $11::text
                    )
                 )
                 `,
@@ -525,7 +549,8 @@ export const approveRepair = async (req,res) => {
                     diag.customer_address,
                     diag.business_name,
                     repair.scheduled_date,
-                    repair.scheduled_time
+                    repair.scheduled_time,
+                    userId
                 ]
             );
         }
@@ -545,7 +570,8 @@ export const approveRepair = async (req,res) => {
                    'technician_name', $6::text,
                    'technician_phone', $7::text,
                    'scheduled_date', $8::date,
-                   'scheduled_time', $9::time
+                   'scheduled_time', $9::time,
+                   'owner_id', $10::text
                    )
                 )
                 `,
@@ -558,7 +584,8 @@ export const approveRepair = async (req,res) => {
                     diag.technician_name,
                     diag.technician_phone,
                     repair.scheduled_date,
-                    repair.scheduled_time
+                    repair.scheduled_time,
+                    userId
                 ]
             );
         }

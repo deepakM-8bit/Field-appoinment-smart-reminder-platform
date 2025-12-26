@@ -2,6 +2,7 @@ import cron from 'node-cron';
 import pool from '../db.js';
 import { sendTechnicianReminder } from "../utils/messages/technicianReminder.js";
 import { sendCustomerReminder } from "../utils/messages/customerReminder.js";
+import { notifyAdmin } from '../utils/notifyAdmin.js';
 
 
 cron.schedule("* * * * *", async () => {
@@ -56,6 +57,14 @@ cron.schedule("* * * * *", async () => {
             console.log("CRON picked reminder:", r.id, r.type);
 
         }catch(err){
+            if(r.attempts + 1 >= 5) {
+                await notifyAdmin({
+                    ownerId: r.meta.owner_id,
+                    subject: "Reminder delivered failed",
+                    message: `Reminder ID ${r.id} failed 5 times and has been stopped. 
+                    Please review.`
+                });
+            }
             console.error("reminder failed:", err.message);
             await pool.query(
                 "UPDATE reminders SET attempts=attempts+1 WHERE id=$1",

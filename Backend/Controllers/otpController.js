@@ -2,6 +2,7 @@ import pool from "../db.js";
 import crypto from "crypto";
 import { sendEmail } from "../utils/sendEmail.js";
 import { OTP_CONFIG } from "../utils/otpConfig.js";
+import { notifyAdmin } from "../utils/notifyAdmin.js";
 
 export const requestOtp = (type) => async (req, res) => {
   if (req.user.role !== "technician") {
@@ -45,6 +46,14 @@ export const requestOtp = (type) => async (req, res) => {
     );
 
     if (Number(recentOtpCount.rows[0].count) >= 3) {
+      
+      await notifyAdmin({
+        ownerId: apptRes.rows[0].owner_id,
+        subject: "OTP abuse detected",
+        message: `Multiple OTP requests detected for appointment ID ${appointmentId}.
+         Technician ID: ${technicianId}.`
+      });
+
       return res.status(429).json({ message: "Too many OTP requests" });
     }
 
