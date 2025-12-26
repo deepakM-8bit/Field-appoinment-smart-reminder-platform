@@ -88,3 +88,87 @@ export const requestOtp = (type) => async (req, res) => {
     client.release();
   }
 };
+
+export const verifyOtp = (type) => async (req, res) => {
+  const { otp, final_cost } = req.body;
+  const appointmentId = req.params.id;
+  const cfg = OTP_CONFIG[type];
+
+  const client = await pool.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    const otpRes = await client.query(
+      `
+      SELECT *
+      FROM otp_codes
+      WHERE appointment_id = $1
+        AND otp_code = $2
+        AND type = $3
+        AND used = false
+        AND expires_at > now()
+      ORDER BY created_at DESC
+      LIMIT 1
+      `,
+      [appointmentId, otp, type]
+    );
+
+    if (!otpRes.rows.length) {
+      return res.status(400).json({ message: "Invalid OTP" });
+    }
+
+    await client.query(
+      `UPDATE otp_codes SET used=true WHERE id=$1`,
+      [otpRes.rows[0].id]
+    );
+
+    if (cfg.nextStatus) {
+      await client.query(
+        `
+        UPDATE appointments
+        SET status = $1,
+            updated_at = now()
+        WHERE id = $2
+        `,
+        [cfg.nextStatus, appointmentId]
+      );
+    }
+
+    if (type === "payment") {
+      await client.query(
+        `
+        UPDATE appointments
+        SET payment_status = 'paid',
+            final_cost = $1,
+            updated_at = now()
+        WHERE id = $2
+        `,
+        [final_cost, appointmentId]
+      );
+    }
+
+    await client.query(
+      `
+      INSERT INTO logs (owner_id, appointment_id, technician_id, event, description)
+      VALUES ($1,$2,$3,$4,$5)
+      `,
+      [
+        otpRes.rows[0].owner_id,
+        appointmentId,
+        req.user.id,
+        cfg.logEventVerify,
+        `OTP verified for ${type}`
+      ]
+    );
+
+    await client.query("COMMIT");
+    res.json({ message: "OTP verified successfully" });
+
+  } catch (err) {
+    await client.query("ROLLBACK");
+    res.status(500).json({ message: "Internal server error" });
+  } finally {
+    client.release();
+  }
+};
