@@ -17,7 +17,7 @@ export const OTP_CONFIG = {
 
   payment: {
     allowedStatus: "repair_in_progress",
-    nextStatus: null, // payment does not change appointment status
+    nextStatus: "repair_completed", // payment does not change appointment status
     emailSubject: "OTP for Payment Confirmation",
     logEventSend: "payment_otp_sent",
     logEventVerify: "payment_completed"

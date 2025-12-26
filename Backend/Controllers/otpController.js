@@ -48,7 +48,7 @@ export const requestOtp = (type) => async (req, res) => {
       return res.status(429).json({ message: "Too many OTP requests" });
     }
 
-    const otp = crypto.randomInt(100000, 999999).toString();
+    const otp = crypto.randomInt(1000, 9999).toString();
 
     await client.query(
       `

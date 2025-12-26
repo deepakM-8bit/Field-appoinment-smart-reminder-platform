@@ -18,7 +18,7 @@ app.use("/api/auth",authRouter);
 app.use("/api/technician",technicianRouter);
 app.use("/api/customer",customerRouter);
 app.use("/api/appointments",appointmentRouter);
-app.use("/api/",otpRouter);
+app.use("/api/otp",otpRouter);
 
 
 app.listen(port, ()=>{
