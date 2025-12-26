@@ -397,8 +397,6 @@ export const approveRepair = async (req,res) => {
     try{
         await client.query("BEGIN");
 
-        await client.query("BEGIN");
-
         const diagRes = await client.query(
             `
             SELECT 
