@@ -42,6 +42,7 @@ export const loginUser = async(req,res) => {
         res.json({
             message: "user found",
             token: token,
+            role: user.role,
             user:{
                 id:user.id,
                 name:user.name,
