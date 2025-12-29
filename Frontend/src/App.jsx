@@ -6,6 +6,7 @@ import ProtectedRoute from "./components/ProctectedRoute.jsx";
 import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
 import CustomersPage from "./pages/admin/CustomerPage.jsx";
 import TechniciansPage from "./pages/admin/TechniciansPage.jsx";
+import CreateDiagnosisPage from "./pages/admin/CreateDiagnosisPage.jsx";
 
 export default function App() {
   return (
@@ -49,6 +50,16 @@ export default function App() {
             </ProtectedRoute>
           }
         />
+
+        <Route 
+          path="/admin/create-diagnosis"
+          element={
+            <ProtectedRoute role="admin">
+              <CreateDiagnosisPage />
+            </ProtectedRoute>
+          }
+        />
+          
       
 
       </Routes>
