@@ -17,7 +17,7 @@ export default function LoginAdmin() {
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("role", res.data.role);
 
-      navigate("/dashboard");
+      navigate("/admin/dashboard");
     } catch (err) {
       alert("Login failed");
       console.log("admin login error:",err);
