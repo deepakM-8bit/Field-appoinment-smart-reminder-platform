@@ -17,7 +17,7 @@ app.use(express.urlencoded({extended:true}));
 
 app.use("/api/auth",authRouter);
 app.use("/api/technician",technicianRouter);
-app.use("/api/customer",customerRouter);
+app.use("/api/customers",customerRouter);
 app.use("/api/appointments",appointmentRouter);
 app.use("/api/otp",otpRouter);
 app.use("/api/dashboard", dashboardRouter);
