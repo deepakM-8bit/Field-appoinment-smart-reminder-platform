@@ -5,6 +5,7 @@ import Dashboard from "./pages/Dashboard.jsx";
 import ProtectedRoute from "./components/ProctectedRoute.jsx";
 import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
 import CustomersPage from "./pages/admin/CustomerPage.jsx";
+import TechniciansPage from "./pages/admin/TechniciansPage.jsx";
 
 export default function App() {
   return (
@@ -39,6 +40,15 @@ export default function App() {
             </ProtectedRoute>
           }
         />  
+
+        <Route 
+          path="/admin/technicians"
+          element={
+            <ProtectedRoute role="admin">
+              <TechniciansPage />
+            </ProtectedRoute>
+          }
+        />
       
 
       </Routes>
