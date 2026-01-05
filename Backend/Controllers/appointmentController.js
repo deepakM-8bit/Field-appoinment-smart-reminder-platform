@@ -635,9 +635,41 @@ export const listAppointment = async (req,res) => {
 };
 
 //technican view the allocated job
-export const getAppoinmentById = async (req,res) => {
-    
+export const getTodayAppointmentsForTechnician = async (req, res) => {
+  if (req.user.role !== "technician") {
+    return res.status(403).json({ message: "Access denied" });
+  }
+
+  const technicianId = req.user.id;
+
+  try {
+    const result = await pool.query(
+      `
+      SELECT
+        a.id,
+        a.appointment_type,
+        a.status,
+        a.category,
+        a.scheduled_time,
+        c.name AS customer_name,
+        c.address AS customer_address
+      FROM appointments a
+      JOIN customers c ON c.id = a.customer_id
+      WHERE a.technician_id = $1
+        AND a.scheduled_date = CURRENT_DATE
+      ORDER BY a.scheduled_time ASC
+      `,
+      [technicianId]
+    );
+
+    return res.json(result.rows);
+
+  } catch (err) {
+    console.error("Technician appointments error:", err);
+    return res.status(500).json({ message: "Internal server error" });
+  }
 };
+
 
 //technician updates the diagnosis
 export const updateTechnicianDiagnosis = async (req,res) => {

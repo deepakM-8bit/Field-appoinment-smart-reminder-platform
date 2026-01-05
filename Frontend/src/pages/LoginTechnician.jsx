@@ -3,14 +3,14 @@ import api from "../services/api.js";
 import { useNavigate } from "react-router-dom";
 
 export default function LoginTechnician() {
-  const [phone_no, setPhone] = useState("");
+  const [phoneno, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
   const handleLogin = async () => {
     try {
       const res = await api.post("api/auth/technician-login", {
-        phone_no,
+        phoneno,
         password
       });
 

@@ -62,10 +62,10 @@ export const loginUser = async(req,res) => {
 }
 
 export const technicianLogin = async (req,res) => {
-    const {name , phoneno} = req.body;
+    const {phoneno, password} = req.body;
 
-        if (!name || !phoneno) {
-        return res.status(400).json({ message: "Name and phone number required" });
+        if (!password || !phoneno) {
+        return res.status(400).json({ message: "password and phone number required" });
         }
 
     try{
@@ -76,6 +76,12 @@ export const technicianLogin = async (req,res) => {
         }
 
         const technician = result.rows[0];
+
+        const valid = await bcrypt.compare(password, technician.password);
+        if(!valid){
+            return res.status(403).json({message: "Invalid password"});
+        }
+
         const token = jwt.sign({id: technician.id, name: technician.name, role:"technician"}, process.env.JWT_SECRET);
         console.log(technician);
 
