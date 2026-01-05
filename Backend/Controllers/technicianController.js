@@ -19,8 +19,9 @@ export const  addTechnicians = async(req,res) => {
     console.log(req.body);
 
     try{
+        const hashedPassword = await bcrypt.hash(password,10);
         const result = await pool.query("INSERT INTO technicians (name,phone,email,category,work_start_time,work_end_time,active,owner_id,password) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *",
-            [name,phoneno,email,category,WST,WET,active,userId,password]
+            [name,phoneno,email,category,WST,WET,active,userId,hashedPassword]
         );
         res.json(result.rows);
         console.log(result.rows);
@@ -37,8 +38,9 @@ export const updateTechnician = async (req,res) => {
     const userId = req.user.id;
 
     try{
+        const hashedPassword = await bcrypt.hash(password,10);
         const result = await pool.query("UPDATE technicians SET name=$1,phone=$2,category=$3,work_start_time=$4,work_end_time=$5,active=$6,email=$7,password=$8 WHERE id=$9 AND owner_id=$10 RETURNING *",
-            [name,phoneno,category,WST,WET,active,email,password,id,userId]
+            [name,phoneno,category,WST,WET,active,email,hashedPassword,id,userId]
         );
         res.json(result.rows[0]);
     }catch(err){
