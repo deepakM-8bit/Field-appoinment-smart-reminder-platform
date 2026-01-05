@@ -1,4 +1,5 @@
 import pool from "../db.js";
+import bcrypt from "bcryptjs";
 
 //get all technicians
 export const getTechnicians = async (req,res) => {
