@@ -629,10 +629,53 @@ export const approveRepair = async (req,res) => {
     }
 };
 
-//admin can view appoinment list
-export const listAppointment = async (req,res) => {
+// view appoinment list
+export const getAppointmentById = async (req, res) => {
+  const appointmentId = req.params.id;
+  const user = req.user;
 
+  try {
+    const result = await pool.query(
+      `
+      SELECT
+        a.id,
+        a.appointment_type,
+        a.status,
+        a.category,
+        a.scheduled_date,
+        a.scheduled_time,
+        c.name AS customer_name,
+        c.phone AS customer_phone,
+        c.address AS customer_address
+      FROM appointments a
+      JOIN customers c ON c.id = a.customer_id
+      WHERE a.id = $1
+      `,
+      [appointmentId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "Appointment not found" });
+    }
+
+    const appointment = result.rows[0];
+
+    // Authorization check
+    if (
+      user.role === "technician" &&
+      appointment.technician_id !== user.id
+    ) {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    return res.json(appointment);
+
+  } catch (err) {
+    console.error("Get appointment by ID error:", err);
+    return res.status(500).json({ message: "Internal server error" });
+  }
 };
+
 
 //technican view the allocated job
 export const getTodayAppointmentsForTechnician = async (req, res) => {

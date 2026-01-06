@@ -55,7 +55,7 @@ export default function TechnicianDashboard() {
             {appointments.map((a) => (
               <tr 
                 key={a.id}
-                onClick={() => navigate('/technician/appointments/${a.id}')}
+                onClick={() => navigate(`/technician/appointments/${a.id}`)}
                 style={{cursor: "pointer"}}
               >
                 <td>{a.id}</td>

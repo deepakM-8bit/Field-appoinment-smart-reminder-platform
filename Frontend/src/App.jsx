@@ -8,6 +8,8 @@ import CustomersPage from "./pages/admin/CustomerPage.jsx";
 import TechniciansPage from "./pages/admin/TechniciansPage.jsx";
 import CreateDiagnosisPage from "./pages/admin/CreateDiagnosisPage.jsx";
 import TechnicianDashboard from "./pages/technician/TechnicianDashboard.jsx";
+import AppointmentDetail from "./pages/technician/AppointmentDetail.jsx";
+
 
 
 export default function App() {
@@ -69,6 +71,15 @@ export default function App() {
               <TechnicianDashboard />
             </ProtectedRoute>
           } 
+        />
+
+        <Route 
+           path="/technician/appointments/:id"
+           element={
+            <ProtectedRoute role="technician">
+              <AppointmentDetail />
+            </ProtectedRoute>
+          }
         />
 
       </Routes>
