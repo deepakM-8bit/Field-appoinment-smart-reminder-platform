@@ -7,6 +7,8 @@ import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
 import CustomersPage from "./pages/admin/CustomerPage.jsx";
 import TechniciansPage from "./pages/admin/TechniciansPage.jsx";
 import CreateDiagnosisPage from "./pages/admin/CreateDiagnosisPage.jsx";
+import TechnicianDashboard from "./pages/technician/TechnicianDashboard.jsx";
+
 
 export default function App() {
   return (
@@ -60,7 +62,14 @@ export default function App() {
           }
         />
           
-      
+        <Route
+          path="/technician/dashboard"
+          element={
+            <ProtectedRoute role="technician">
+              <TechnicianDashboard />
+            </ProtectedRoute>
+          } 
+        />
 
       </Routes>
     </BrowserRouter>

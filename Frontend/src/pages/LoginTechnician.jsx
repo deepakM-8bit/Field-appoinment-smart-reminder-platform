@@ -17,7 +17,7 @@ export default function LoginTechnician() {
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("role", res.data.role);
 
-      navigate("/dashboard");
+      navigate("/technician/dashboard");
     } catch (err) {
       alert("Login failed");
       console.log("technician login error:",err.message);

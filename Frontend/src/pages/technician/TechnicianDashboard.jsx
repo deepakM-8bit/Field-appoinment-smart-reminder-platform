@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../../services/api.js";
 
 export default function TechnicianDashboard() {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchAppointments = async () => {
@@ -51,7 +53,11 @@ export default function TechnicianDashboard() {
 
           <tbody>
             {appointments.map((a) => (
-              <tr key={a.id}>
+              <tr 
+                key={a.id}
+                onClick={() => navigate('/technician/appointments/${a.id}')}
+                style={{cursor: "pointer"}}
+              >
                 <td>{a.id}</td>
                 <td>{a.customer_name}</td>
                 <td>{a.category}</td>
