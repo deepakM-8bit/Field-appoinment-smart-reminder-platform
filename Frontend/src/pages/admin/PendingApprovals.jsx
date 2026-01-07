@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../../services/api.js";
 
+
 export default function PendingApprovals() {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -12,6 +13,7 @@ export default function PendingApprovals() {
       setAppointments(res.data);
     } catch (err) {
       setMessage("Failed to load approvals");
+      console.log("approval load error:",err.message);
     } finally {
       setLoading(false);
     }
@@ -28,6 +30,7 @@ export default function PendingApprovals() {
       setAppointments(prev => prev.filter(a => a.id !== id));
     } catch (err) {
       alert("Approval failed");
+      console.log("approval error:",err.message);
     }
   };
 

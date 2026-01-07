@@ -89,6 +89,31 @@ export default function AppointmentDetail() {
     }
    };
 
+   const requestRepairOtp = async () => {
+  try {
+    await api.post(`/api/otp/${id}/request-repair-otp`);
+    setMessage("Repair OTP sent to customer");
+  } catch (err) {
+    setMessage("Failed to send repair OTP");
+    console.log("error otp sending:",err.message);
+  }
+};
+
+const verifyRepairOtp = async () => {
+  if (!otp) return alert("Enter OTP");
+
+  try {
+    await api.post(`/api/otp/${id}/verify-repair-otp`, { otp });
+    setOtp("");
+    setMessage("Repair started");
+    window.location.reload(); // simple refresh
+  } catch (err) {
+    setMessage("Invalid OTP");
+    console.log("invalid otp:",err.message);
+  }
+};
+
+
   if (loading) return <p>Loading appointment...</p>;
   if (!appointment) return <p>{message}</p>;
 
@@ -187,6 +212,24 @@ export default function AppointmentDetail() {
       </button>
     </div>
    )}
+    {appointment.status === "repair_scheduled" && (
+  <>
+    <button onClick={requestRepairOtp}>
+      Start Repair (Request OTP)
+    </button>
+
+    <div style={{ marginTop: "10px" }}>
+      <input
+        placeholder="Enter OTP"
+        value={otp}
+        onChange={e => setOtp(e.target.value)}
+      />
+      <button onClick={verifyRepairOtp} style={{ marginLeft: "8px" }}>
+        Verify OTP
+      </button>
+    </div>
+  </>
+)}
 
     </div>
   );

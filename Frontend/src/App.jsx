@@ -9,7 +9,7 @@ import TechniciansPage from "./pages/admin/TechniciansPage.jsx";
 import CreateDiagnosisPage from "./pages/admin/CreateDiagnosisPage.jsx";
 import TechnicianDashboard from "./pages/technician/TechnicianDashboard.jsx";
 import AppointmentDetail from "./pages/technician/AppointmentDetail.jsx";
-
+import PendingApprovals from "./pages/admin/PendingApprovals.jsx";
 
 
 export default function App() {
@@ -80,6 +80,15 @@ export default function App() {
               <AppointmentDetail />
             </ProtectedRoute>
           }
+        />
+
+        <Route
+           path="/admin/pending-approvals"
+           element={
+            <ProtectedRoute role="admin">
+              <PendingApprovals />
+            </ProtectedRoute>
+          } 
         />
 
       </Routes>

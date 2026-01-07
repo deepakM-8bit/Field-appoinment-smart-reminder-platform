@@ -61,7 +61,7 @@ export default function TechnicianDashboard() {
                 <td>{a.id}</td>
                 <td>{a.customer_name}</td>
                 <td>{a.category}</td>
-                <td>{a.appointment_type}</td>
+                <td>{a.appointment_type === "repair" ? "Repair" : "Diagnosis"}</td>
                 <td>{a.status}</td>
                 <td>{a.scheduled_time}</td>
                 <td>{a.customer_address || "-"}</td>

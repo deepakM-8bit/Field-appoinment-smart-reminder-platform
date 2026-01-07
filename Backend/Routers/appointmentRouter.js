@@ -4,11 +4,12 @@ import { approveRepair, completeDiagnosis, createAppointment, getAppointmentById
 
 const router = express.Router();
 
-router.post("/diagnosis",authenticate,createAppointment)
-router.post("/:id/diagnosis-complete",authenticate,completeDiagnosis);
-router.post("/:id/repair-approval",authenticate,approveRepair)
-router.get("/technician/today",authenticate,getTodayAppointmentsForTechnician)
-router.get("/:id",authenticate,getAppointmentById);
+router.post("/diagnosis",authenticate,createAppointment);
+router.get("/technician/today",authenticate,getTodayAppointmentsForTechnician);
 router.get("/pending-approvals",authenticate,listPendingApprovals);
+router.get("/:id",authenticate,getAppointmentById);
+router.post("/:id/diagnosis-complete",authenticate,completeDiagnosis);
+router.post("/:id/repair-approval",authenticate,approveRepair);
+
 
 export default router;
