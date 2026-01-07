@@ -713,7 +713,6 @@ export const getTodayAppointmentsForTechnician = async (req, res) => {
   }
 };
 
-//admin view pending approvals
 // admin view pending approvals
 export const listPendingApprovals = async (req, res) => {
   const ownerId = req.user.id;
@@ -742,14 +741,4 @@ export const listPendingApprovals = async (req, res) => {
     console.error("Pending approvals error:", err);
     res.status(500).json({ message: "Internal server error" });
   }
-};
-
-//technician updates the diagnosis
-export const updateTechnicianDiagnosis = async (req,res) => {
-
-};
-
-//admin schedule repair date/time
-export const scheduleRepair = async (req,res) => {
-
 };
