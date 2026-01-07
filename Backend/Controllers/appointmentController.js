@@ -742,3 +742,70 @@ export const listPendingApprovals = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+//get unassigned appointment for manual assignment by admin 
+export const getUnassignedAppointments = async (req, res) => {
+  try {
+    const result = await db.query(
+      `
+      SELECT id, customer_name, category, scheduled_date
+      FROM appointments
+      WHERE technician_id IS NULL
+      AND status IN ('approved', 'pending')
+      ORDER BY scheduled_date ASC
+      `
+    );
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Unassigned appointments error:", err.message);
+    res.status(500).json({ message: "Failed to fetch unassigned appointments" });
+  }
+};
+
+//admin assign technician manually
+export const assignTechnicianManually = async (req, res) => {
+  const { id } = req.params;
+  const { technicianId } = req.body;
+
+  if (!technicianId) {
+    return res.status(400).json({ message: "Technician ID is required" });
+  }
+
+  try {
+    // Check appointment
+    const appointment = await db.query(
+      "SELECT id FROM appointments WHERE id = $1",
+      [id]
+    );
+
+    if (appointment.rowCount === 0) {
+      return res.status(404).json({ message: "Appointment not found" });
+    }
+
+    // Check technician
+    const technician = await db.query(
+      "SELECT id FROM technicians WHERE id = $1",
+      [technicianId]
+    );
+
+    if (technician.rowCount === 0) {
+      return res.status(404).json({ message: "Technician not found" });
+    }
+
+    // Assign technician
+    await db.query(
+      `
+      UPDATE appointments
+      SET technician_id = $1, status = 'assigned'
+      WHERE id = $2
+      `,
+      [technicianId, id]
+    );
+
+    res.json({ message: "Technician assigned successfully" });
+  } catch (err) {
+    console.error("Manual assignment error:", err.message);
+    res.status(500).json({ message: "Failed to assign technician" });
+  }
+};
