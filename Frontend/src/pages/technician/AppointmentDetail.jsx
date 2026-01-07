@@ -113,6 +113,36 @@ const verifyRepairOtp = async () => {
   }
 };
 
+    const requestPaymentOtp = async () => {
+  if (!finalCost) return alert("Enter final amount");
+
+  try {
+    await api.post(`/api/otp/${id}/request-payment-otp`);
+    setMessage("Payment OTP sent");
+  } catch (err) {
+    setMessage("Failed to send payment OTP");
+    console.log("sending otp error:", err.message);
+  }
+};
+
+const verifyPaymentOtp = async () => {
+  if (!otp) return alert("Enter OTP");
+
+  try {
+    await api.post(`/api/otp/${id}/verify-payment-otp`, {
+      otp,
+      final_cost: Number(finalCost)
+    });
+
+    setMessage("Payment completed successfully");
+    setOtp("");
+    window.location.reload();
+  } catch (err) {
+    setMessage("Payment verification failed");
+    console.log("payment verification error:", err.message);   
+  }
+};
+
 
   if (loading) return <p>Loading appointment...</p>;
   if (!appointment) return <p>{message}</p>;
@@ -226,6 +256,33 @@ const verifyRepairOtp = async () => {
       />
       <button onClick={verifyRepairOtp} style={{ marginLeft: "8px" }}>
         Verify OTP
+      </button>
+    </div>
+  </>
+)}
+    {appointment.status === "repair_in_progress" && (
+  <>
+    <h3>Complete Repair & Payment</h3>
+
+    <input
+      placeholder="Final Amount"
+      type="number"
+      value={finalCost}
+      onChange={e => setFinalCost(e.target.value)}
+    />
+
+    <button onClick={requestPaymentOtp}>
+      Request Payment OTP
+    </button>
+
+    <div style={{ marginTop: "10px" }}>
+      <input
+        placeholder="Enter Payment OTP"
+        value={otp}
+        onChange={e => setOtp(e.target.value)}
+      />
+      <button onClick={verifyPaymentOtp}>
+        Verify Payment
       </button>
     </div>
   </>
