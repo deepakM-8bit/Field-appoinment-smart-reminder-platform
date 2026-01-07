@@ -1,95 +1,70 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import LoginAdmin from "./pages/LoginAdmin.jsx";
-import LoginTechnician from "./pages/LoginTechnician.jsx";
-import Dashboard from "./pages/Dashboard.jsx";
 import ProtectedRoute from "./components/ProctectedRoute.jsx";
+
+import PublicLayout from "./layouts/PublicLayout.jsx";
+import AdminLayout from "./layouts/AdminLayout.jsx";
+import TechnicianLayout from "./layouts/TechnicianLayout.jsx";
+
+import Home from "./pages/Home.jsx";
+import LoginAdmin from "./pages/LoginAdmin.jsx";
+import Signup from "./pages/Signup.jsx";
+import LoginTechnician from "./pages/LoginTechnician.jsx";
+
+
 import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
 import CustomersPage from "./pages/admin/CustomerPage.jsx";
 import TechniciansPage from "./pages/admin/TechniciansPage.jsx";
 import CreateDiagnosisPage from "./pages/admin/CreateDiagnosisPage.jsx";
+import PendingApprovals from "./pages/admin/PendingApprovals.jsx";
+import AdminAppointments from "./pages/admin/Appointments.jsx";
+
 import TechnicianDashboard from "./pages/technician/TechnicianDashboard.jsx";
 import AppointmentDetail from "./pages/technician/AppointmentDetail.jsx";
-import PendingApprovals from "./pages/admin/PendingApprovals.jsx";
+
 
 
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<LoginAdmin />} />
-        <Route path="/tech-login" element={<LoginTechnician />} />
 
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          }
-        />
+        {/* Public */}
+        <Route element={<PublicLayout />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<LoginAdmin />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/tech-login" element={<LoginTechnician />} />
+        </Route>
 
+        {/* Admin */}
         <Route
-          path="/admin/dashboard"
+          path="/admin"
           element={
             <ProtectedRoute role="admin">
-              <AdminDashboard />
+              <AdminLayout />
             </ProtectedRoute>
           }
-        />
+        >
+          <Route path="dashboard" element={<AdminDashboard />} />
+          <Route path="technicians" element={<TechniciansPage />} />
+          <Route path="appointments" element={<AdminAppointments />} />
+          <Route path="customers" element={<CustomersPage />} />
+          <Route path="create-diagnosis" element={<CreateDiagnosisPage />} />
+          <Route path="pending-approvals" element={<PendingApprovals />} />
+        </Route>
 
-        <Route 
-          path="/admin/customers"
-          element={
-           <ProtectedRoute role="admin">
-             <CustomersPage />
-            </ProtectedRoute>
-          }
-        />  
-
-        <Route 
-          path="/admin/technicians"
-          element={
-            <ProtectedRoute role="admin">
-              <TechniciansPage />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route 
-          path="/admin/create-diagnosis"
-          element={
-            <ProtectedRoute role="admin">
-              <CreateDiagnosisPage />
-            </ProtectedRoute>
-          }
-        />
-          
+        {/* Technician */}  
         <Route
-          path="/technician/dashboard"
+          path="/technician"
           element={
             <ProtectedRoute role="technician">
-              <TechnicianDashboard />
+              <TechnicianLayout />
             </ProtectedRoute>
           } 
-        />
-
-        <Route 
-           path="/technician/appointments/:id"
-           element={
-            <ProtectedRoute role="technician">
-              <AppointmentDetail />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-           path="/admin/pending-approvals"
-           element={
-            <ProtectedRoute role="admin">
-              <PendingApprovals />
-            </ProtectedRoute>
-          } 
-        />
+        >
+          <Route path="dashboard" element={<TechnicianDashboard />} />
+          <Route path="appointments/:id" element={<AppointmentDetail />} /> 
+        </Route>
 
       </Routes>
     </BrowserRouter>
