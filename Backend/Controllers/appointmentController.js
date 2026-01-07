@@ -281,7 +281,6 @@ export const completeDiagnosis = async (req,res) => {
         !issue_description ||
         !estimated_duration ||
         !estimated_cost ||
-        !final_cost ||
         !requires_parts ||
         !suggested_repair_date
     ) {
@@ -639,6 +638,7 @@ export const getAppointmentById = async (req, res) => {
       `
       SELECT
         a.id,
+        a.technician_id,
         a.appointment_type,
         a.status,
         a.category,
@@ -713,6 +713,36 @@ export const getTodayAppointmentsForTechnician = async (req, res) => {
   }
 };
 
+//admin view pending approvals
+// admin view pending approvals
+export const listPendingApprovals = async (req, res) => {
+  const ownerId = req.user.id;
+
+  try {
+    const result = await pool.query(
+      `
+      SELECT 
+        a.id,
+        a.category,
+        a.estimated_cost,
+        a.scheduled_date,
+        c.name AS customer_name,
+        c.phone AS customer_phone
+      FROM appointments a
+      JOIN customers c ON c.id = a.customer_id
+      WHERE a.owner_id = $1
+        AND a.status = 'diagnosis_completed_waiting_approval'
+      ORDER BY a.created_at ASC
+      `,
+      [ownerId]
+    );
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Pending approvals error:", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
 
 //technician updates the diagnosis
 export const updateTechnicianDiagnosis = async (req,res) => {
