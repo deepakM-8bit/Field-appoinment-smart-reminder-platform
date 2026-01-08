@@ -819,3 +819,32 @@ export const assignTechnicianManually = async (req, res) => {
     res.status(500).json({ message: "Failed to assign technician" });
   }
 };
+
+// find customer by phone (admin)
+export const getCustomerByPhone = async (req, res) => {
+  const ownerId = req.user.id;
+  const { phone } = req.query;
+
+  if (!phone) {
+    return res.status(400).json({ message: "Phone number required" });
+  }
+
+  try {
+    const result = await pool.query(
+      `
+      SELECT id, name, phone, email, address
+      FROM customers
+      WHERE phone = $1
+        AND owner_id = $2
+      `,
+      [phone, ownerId]
+    );
+
+    // Important: return null if not found (frontend expects this)
+    return res.json(result.rows[0] || null);
+
+  } catch (err) {
+    console.error("Get customer by phone error:", err);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
