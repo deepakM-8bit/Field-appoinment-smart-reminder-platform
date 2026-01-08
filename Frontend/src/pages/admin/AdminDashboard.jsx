@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../../services/api.js";
-
+import AssignTechnicianModal from "./AssignTechnicianModal.jsx";
+import CreateDiagnosisPage from "./CreateDiagnosisPage.jsx";
 /* ---------- Small UI helpers ---------- */
 function Section({ title, action, children }) {
   return (
@@ -24,6 +25,8 @@ function EmptyState({ text }) {
 export default function AdminDashboard() {
   const [pendingApprovals, setPendingApprovals] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [unassigned, setUnassigned] = useState([]);
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -33,13 +36,18 @@ export default function AdminDashboard() {
           "/api/appointments/pending-approvals"
         );
         setPendingApprovals(approvalsRes.data);
+        
+        const unassignedRes = await api.get("/api/appointments/unassigned");
+        setUnassigned(unassignedRes.data);
       } catch (err) {
         console.error(err);
         setError("Failed to load dashboard data");
       } finally {
         setLoading(false);
       }
+
     };
+
 
     fetchDashboardData();
   }, []);
@@ -125,20 +133,39 @@ export default function AdminDashboard() {
       </Section>
 
       {/* P1: Unassigned appointments (placeholder, wired next) */}
-      <Section
-        title="Unassigned Appointments"
-        action={
-          <Link
-            to="/admin/appointments"
-            className="text-sm font-medium text-blue-600 hover:underline"
-          >
-            View all
-          </Link>
-        }
-      >
-        <EmptyState text="No unassigned appointments at the moment." />
-      </Section>
+        <Section title="Unassigned Appointments">
+          {unassigned.length === 0 ? (
+            <EmptyState text="No unassigned appointments 🎉" />
+          ) : (
+            <div className="space-y-3">
+             {unassigned.slice(0, 5).map((a) => (
+                <div
+                  key={a.id}
+                  className="flex flex-col gap-3 rounded-md border border-gray-200 p-3 sm:flex-row sm:items-center sm:justify-between"
+                >
+                  <div className="text-sm">
+                    <p className="font-medium text-slate-900">
+                      {a.customer_name}
+                    </p>
+                    <p className="text-slate-500">
+                      {a.category} · {a.scheduled_date}
+                    </p>
+                  </div>
 
+                  <button
+                    onClick={() => setSelectedAppointment(a)}
+                    className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                  >
+                     Assign Technician
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </Section>
+
+      <CreateDiagnosisPage />
+      
       {/* P2: Secondary info */}
       <Section title="Today’s Overview">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -164,6 +191,17 @@ export default function AdminDashboard() {
           </div>
         </div>
       </Section>
+
+      {selectedAppointment && (
+        <AssignTechnicianModal
+          appointment={selectedAppointment}
+          onClose={() => setSelectedAppointment(null)}
+          onAssigned={(id) =>
+            setUnassigned((prev) => prev.filter((a) => a.id !== id))
+          }
+        />
+      )}
+
     </div>
   );
 }

@@ -1,5 +1,6 @@
-import { Outlet, Link, useNavigate } from "react-router-dom";
+import { Outlet, Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useState } from "react";
+import AppointmentsModal from "../pages/admin/Appointments.jsx";
 
 /* ---------- Reusable NavLink (DECLARED OUTSIDE) ---------- */
 function AdminNavLink({ to, children, onClick }) {
@@ -18,6 +19,10 @@ function AdminNavLink({ to, children, onClick }) {
 export default function AdminLayout() {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const appointmentsOpen =
+  searchParams.get("modal") === "appointments";
 
   const logout = () => {
     localStorage.clear();
@@ -41,9 +46,16 @@ export default function AdminLayout() {
             <AdminNavLink to="/admin/dashboard" onClick={() => setSidebarOpen(false)}>
               Dashboard
             </AdminNavLink>
-            <AdminNavLink to="/admin/appointments" onClick={() => setSidebarOpen(false)}>
+            <button 
+              onClick={() => setSearchParams({modal: "appointments"})}
+              className={`block w-full rounded-md px-3 py-2 text-left text-sm font-medium ${
+                appointmentsOpen
+                  ? "bg-slate-900 text-white"
+                  : "text-slate-200 hover:bg-slate-800"
+              }`}
+            >
               Appointments
-            </AdminNavLink>
+            </button>
             <AdminNavLink to="/admin/customers" onClick={() => setSidebarOpen(false)}>
               Customers
             </AdminNavLink>
@@ -52,9 +64,6 @@ export default function AdminLayout() {
             </AdminNavLink>
             <AdminNavLink to="/admin/create-diagnosis" onClick={() => setSidebarOpen(false)}>
               Create Diagnosis
-            </AdminNavLink>
-            <AdminNavLink to="/admin/pending-approvals" onClick={() => setSidebarOpen(false)}>
-              Pending Approvals
             </AdminNavLink>
           </nav>
 
@@ -95,6 +104,9 @@ export default function AdminLayout() {
         <main className="flex-1 p-4 lg:p-6">
           <Outlet />
         </main>
+        {appointmentsOpen && (
+          <AppointmentsModal onClose={() => setSearchParams({})} />
+        )}
       </div>
     </div>
   );

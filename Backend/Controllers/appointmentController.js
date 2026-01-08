@@ -607,6 +607,16 @@ export const approveRepair = async (req,res) => {
             ]
         );
 
+        await client.query(
+            `
+            UPDATE appointments 
+            
+            SET status = 'repair_scheduled', updated_at = now()
+            WHERE id = $1
+            `,
+            [diagnosisId]           
+        );
+
         console.log({
             technicianEmail: diag.technician_email,
             customerEmail: diag.customer_email
@@ -746,12 +756,12 @@ export const listPendingApprovals = async (req, res) => {
 //get unassigned appointment for manual assignment by admin 
 export const getUnassignedAppointments = async (req, res) => {
   try {
-    const result = await db.query(
+    const result = await pool.query(
       `
-      SELECT id, customer_name, category, scheduled_date
+      SELECT id, customer_id, category, scheduled_date
       FROM appointments
-      WHERE technician_id IS NULL
-      AND status IN ('approved', 'pending')
+      WHERE technician_id IS null
+      AND status IN ('waiting_for_assignment')
       ORDER BY scheduled_date ASC
       `
     );
@@ -774,7 +784,7 @@ export const assignTechnicianManually = async (req, res) => {
 
   try {
     // Check appointment
-    const appointment = await db.query(
+    const appointment = await pool.query(
       "SELECT id FROM appointments WHERE id = $1",
       [id]
     );
@@ -784,7 +794,7 @@ export const assignTechnicianManually = async (req, res) => {
     }
 
     // Check technician
-    const technician = await db.query(
+    const technician = await pool.query(
       "SELECT id FROM technicians WHERE id = $1",
       [technicianId]
     );
@@ -794,7 +804,7 @@ export const assignTechnicianManually = async (req, res) => {
     }
 
     // Assign technician
-    await db.query(
+    await pool.query(
       `
       UPDATE appointments
       SET technician_id = $1, status = 'assigned'
