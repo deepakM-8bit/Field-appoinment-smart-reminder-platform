@@ -825,8 +825,8 @@ export const getCustomerByPhone = async (req, res) => {
   const ownerId = req.user.id;
   const { query } = req.query;
 
-  if (!phone) {
-    return res.status(400).json({ message: "Phone number required" });
+  if (!query || query.length < 2) {
+    return res.json([]);
   }
 
   try {

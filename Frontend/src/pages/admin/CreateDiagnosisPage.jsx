@@ -98,7 +98,7 @@ export default function CreateDiagnosisPage() {
       </div>
 
       {/* Phone Search */}
-      <div className="relative mb-6">
+      <div className="relative mb-6 w-64">
         <input
           className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm
                      focus:outline-none focus:ring-2 focus:ring-blue-600"
