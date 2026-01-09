@@ -10,7 +10,7 @@ router.post("/diagnosis",authenticate,createAppointment);
 router.get("/technician/today",authenticate,getTodayAppointmentsForTechnician);
 router.get("/pending-approvals",authenticate,listPendingApprovals);
 router.get("/unassigned", authenticate, getUnassignedAppointments);
-router.get("/customers/by-phone",authenticate,getCustomerByPhone)
+router.get("/customers/search",authenticate,getCustomerByPhone)
 router.get("/:id",authenticate,getAppointmentById);
 router.post("/:id/diagnosis-complete",authenticate,completeDiagnosis);
 router.post("/:id/repair-approval",authenticate,approveRepair);

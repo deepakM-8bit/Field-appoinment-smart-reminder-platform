@@ -823,7 +823,7 @@ export const assignTechnicianManually = async (req, res) => {
 // find customer by phone (admin)
 export const getCustomerByPhone = async (req, res) => {
   const ownerId = req.user.id;
-  const { phone } = req.query;
+  const { query } = req.query;
 
   if (!phone) {
     return res.status(400).json({ message: "Phone number required" });
@@ -834,14 +834,16 @@ export const getCustomerByPhone = async (req, res) => {
       `
       SELECT id, name, phone, email, address
       FROM customers
-      WHERE phone = $1
-        AND owner_id = $2
+      WHERE owner_id = $1
+        AND phone ILIKE $2
+      ORDER BY phone
+      LIMIT 5  
       `,
-      [phone, ownerId]
+      [ownerId, `${query}%`]
     );
 
     // Important: return null if not found (frontend expects this)
-    return res.json(result.rows[0] || null);
+    return res.json(result.rows || null);
 
   } catch (err) {
     console.error("Get customer by phone error:", err);

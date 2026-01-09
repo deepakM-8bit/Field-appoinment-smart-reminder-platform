@@ -3,6 +3,8 @@ import api from "../../services/api.js";
 
 export default function CreateDiagnosisPage() {
   const [searchPhone, setSearchPhone] = useState("");
+  const [suggestions, setSuggestions] = useState([]);
+  const [showDropdown, setShowDropdown] = useState(false);
   const [customerFound, setCustomerFound] = useState(false);
 
   const [name, setName] = useState("");
@@ -15,45 +17,42 @@ export default function CreateDiagnosisPage() {
   const [time, setTime] = useState("");
 
   const [loading, setLoading] = useState(false);
-  const [searching, setSearching] = useState(false);
   const [result, setResult] = useState(null);
 
-  /* ---------- Customer search ---------- */
-  const searchCustomer = async () => {
-    if (!searchPhone) return;
-
-    setSearching(true);
+  /* ---------- Autocomplete search ---------- */
+  const handlePhoneChange = async (value) => {
+    setSearchPhone(value);
     setCustomerFound(false);
-    setResult(null);
+
+    if (value.trim().length < 3) {
+      setSuggestions([]);
+      setShowDropdown(false);
+      return;
+    }
 
     try {
       const res = await api.get(
-        `/api/customers/by-phone?phone=${searchPhone}`
+        `/api/appointments/customers/search?query=${value}`
       );
 
-      if (res.data) {
-        const c = res.data;
-        setCustomerFound(true);
-        setName(c.name || "");
-        setPhone(c.phoneno || searchPhone);
-        setEmail(c.email || "");
-        setAddress(c.address || "");
-      } else {
-        resetCustomerFields(searchPhone);
-      }
+      setSuggestions(res.data);
+      setShowDropdown(true);
     } catch (err) {
-      console.error("Customer search failed", err);
-      resetCustomerFields(searchPhone);
-    } finally {
-      setSearching(false);
+      console.error("Autocomplete failed", err);
     }
   };
 
-  const resetCustomerFields = (phoneValue = "") => {
-    setName("");
-    setPhone(phoneValue);
-    setEmail("");
-    setAddress("");
+  /* ---------- Select existing customer ---------- */
+  const selectCustomer = (customer) => {
+    setName(customer.name || "");
+    setPhone(customer.phone || "");
+    setEmail(customer.email || "");
+    setAddress(customer.address || "");
+
+    setCustomerFound(true);
+    setSearchPhone(customer.phone);
+    setSuggestions([]);
+    setShowDropdown(false);
   };
 
   /* ---------- Create diagnosis ---------- */
@@ -98,23 +97,37 @@ export default function CreateDiagnosisPage() {
         </p>
       </div>
 
-      {/* Customer Lookup */}
-      <div className="mb-6 flex gap-3">
+      {/* Phone Search */}
+      <div className="relative mb-6">
         <input
-          className="w-xl rounded-md border border-gray-200 px-3 py-2 text-sm
+          className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm
                      focus:outline-none focus:ring-2 focus:ring-blue-600"
           placeholder="Search by phone number"
           value={searchPhone}
-          onChange={(e) => setSearchPhone(e.target.value)}
+          onChange={(e) => handlePhoneChange(e.target.value)}
         />
-        <button
-          onClick={searchCustomer}
-          disabled={searching}
-          className="rounded-md bg-slate-200 px-4 py-2 text-sm font-medium
-                     hover:bg-slate-300 disabled:opacity-60"
-        >
-          {searching ? "Searching…" : "Search"}
-        </button>
+
+        {/* Dropdown */}
+        {showDropdown && (
+          <div className="absolute z-10 mt-1 w-full rounded-md border border-gray-200 bg-white shadow-sm">
+            {suggestions.length > 0 ? (
+              suggestions.map((c) => (
+                <button
+                  key={c.id}
+                  onClick={() => selectCustomer(c)}
+                  className="flex w-full justify-between px-3 py-2 text-sm hover:bg-slate-100"
+                >
+                  <span>{c.phone}</span>
+                  <span className="text-slate-500">{c.name}</span>
+                </button>
+              ))
+            ) : (
+              <div className="px-3 py-2 text-sm text-slate-500">
+                No existing customer — continue to create new
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Customer Details */}
@@ -130,8 +143,7 @@ export default function CreateDiagnosisPage() {
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <input
-            className="rounded-md border border-gray-200 px-3 py-2 text-sm
-                       focus:ring-2 focus:ring-blue-600"
+            className="rounded-md border border-gray-200 px-3 py-2 text-sm"
             placeholder="Name"
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -141,20 +153,18 @@ export default function CreateDiagnosisPage() {
             className="rounded-md border border-gray-200 px-3 py-2 text-sm bg-slate-50"
             placeholder="Phone"
             value={phone}
-            disabled
+            onChange={(e) => setPhone(e.target.value)}
           />
 
           <input
-            className="rounded-md border border-gray-200 px-3 py-2 text-sm
-                       focus:ring-2 focus:ring-blue-600"
+            className="rounded-md border border-gray-200 px-3 py-2 text-sm"
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
 
           <input
-            className="rounded-md border border-gray-200 px-3 py-2 text-sm
-                       focus:ring-2 focus:ring-blue-600"
+            className="rounded-md border border-gray-200 px-3 py-2 text-sm"
             placeholder="Address"
             value={address}
             onChange={(e) => setAddress(e.target.value)}
@@ -170,8 +180,7 @@ export default function CreateDiagnosisPage() {
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <input
-            className="rounded-md border border-gray-200 px-3 py-2 text-sm
-                       focus:ring-2 focus:ring-blue-600"
+            className="rounded-md border border-gray-200 px-3 py-2 text-sm"
             placeholder="Category"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
@@ -179,16 +188,14 @@ export default function CreateDiagnosisPage() {
 
           <input
             type="date"
-            className="rounded-md border border-gray-200 px-3 py-2 text-sm
-                       focus:ring-2 focus:ring-blue-600"
+            className="rounded-md border border-gray-200 px-3 py-2 text-sm"
             value={date}
             onChange={(e) => setDate(e.target.value)}
           />
 
           <input
             type="time"
-            className="rounded-md border border-gray-200 px-3 py-2 text-sm
-                       focus:ring-2 focus:ring-blue-600"
+            className="rounded-md border border-gray-200 px-3 py-2 text-sm"
             value={time}
             onChange={(e) => setTime(e.target.value)}
           />
