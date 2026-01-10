@@ -89,12 +89,11 @@ export const technicianLogin = async (req,res) => {
             message:"technician login successfully",
             role:"technician",
             token,
+            mustChangePassword: technician.must_change_password,
             technician:{
                 id:technician.id,
                 name:technician.name,
                 category:technician.category,
-                work_start_time:technician.work_start_time,
-                work_end_time:technician.work_end_time
             },
         })
     }catch(err){
@@ -102,3 +101,31 @@ export const technicianLogin = async (req,res) => {
         return res.status(500).json({message:"server error"});
     }
 }
+
+export const technicanResetPassword = async (req,res) => {
+    const technicanId = req.user.id;
+    const { newPassword } = req.body;
+
+    if(!newPassword || newPassword.length < 5) {
+        return res.status(400).json({message: "Password must be at least 5 characters"});
+    }
+
+    try {
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        await pool.query(
+            `
+            UPDATE technicians
+            SET password = $1,
+                must_change_password = false
+            WHERE id = $2
+            `,
+            [hashedPassword, technicanId]        
+        );
+
+        return res.json({message: "Password updated successfully"});
+    } catch (err) {
+        console.error("Reset password error:", err);
+        return res.status(500).json({message: "internal server error"});
+    }
+};
