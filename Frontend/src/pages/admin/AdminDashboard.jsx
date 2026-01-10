@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import api from "../../services/api.js";
 import AssignTechnicianModal from "./AssignTechnicianModal.jsx";
 import CreateDiagnosisPage from "./CreateDiagnosisPage.jsx";
+
 /* ---------- Small UI helpers ---------- */
 function Section({ title, action, children }) {
   return (

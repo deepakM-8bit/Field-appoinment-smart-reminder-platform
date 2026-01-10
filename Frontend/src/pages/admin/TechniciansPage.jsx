@@ -29,6 +29,10 @@ export default function TechniciansPage() {
   const [editTech, setEditTech] = useState(null);
   const [editPassword, setEditPassword] = useState("");
 
+  /* ---- delete modal ---- */
+  const [deleteTech, setDeleteTech] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+
   const fetchTechnicians = async () => {
     try {
       const res = await api.get("/api/technicians");
@@ -127,6 +131,26 @@ export default function TechniciansPage() {
     }
   };
 
+  /* ---------- Delete technician ---------- */
+  const confirmDelete = async () => {
+    if (!deleteTech) return;
+
+    setDeleting(true);
+    try {
+      await api.delete(`/api/technicians/${deleteTech.id}`);
+
+      // optimistic update
+      setTechnicians((prev) => prev.filter((t) => t.id !== deleteTech.id));
+
+      setDeleteTech(null);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to delete technician");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   if (loading) {
     return <p className="py-20 text-center text-slate-500">Loading technicians…</p>;
   }
@@ -213,7 +237,7 @@ export default function TechniciansPage() {
             Active
           </label>
 
-          <button onClick={handleAddTechnician} className="btn bg-green-300 text-green-800 rounded-md px-2 font-semibold">
+          <button onClick={handleAddTechnician} className="bg-green-600 hover:bg-green-700 text-white rounded-md px-2 py-1 font-semibold">
             Add Technician
           </button>
         </div>
@@ -275,6 +299,13 @@ export default function TechniciansPage() {
                   >
                     Edit
                   </button>
+
+                  <button
+                    onClick={() => setDeleteTech(t)}
+                    className="text-red-600 hover:underline"
+                  >
+                    Delete
+                  </button>                    
                 </td>
               </tr>
             ))}
@@ -331,16 +362,53 @@ export default function TechniciansPage() {
             </div>
 
             <div className="mt-4 flex justify-end gap-3">
-              <button onClick={() => setEditTech(null)} className="btn bg-red-300 rounded-md px-2 text-red-800">
+              <button onClick={() => setEditTech(null)} className="">
                 Cancel
               </button>
-              <button onClick={saveEdit} className="rounded-md px-2 first-line:btn-primary bg-sky-300 text-sky-900">
+              <button onClick={saveEdit} className="rounded-md px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-60">
                 Save Changes
               </button>
             </div>
           </div>
         </div>
       )}
-    </div>
+  
+
+      {/* Delete Confirmation Modal */}
+        {deleteTech && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+            <div className="w-full max-w-md rounded-lg bg-white p-5 shadow-lg">
+              <h2 className="text-sm font-semibold text-slate-900">
+                Delete Technician
+              </h2>
+
+              <p className="mt-2 text-sm text-slate-600">
+                Are you sure you want to delete{" "}
+                <span className="font-medium text-slate-900">{deleteTech.name}</span>
+                  ? This action cannot be undone.
+              </p>
+
+              <div className="mt-5 flex justify-end gap-3">
+                <button
+                  onClick={() => setDeleteTech(null)}
+                  disabled={deleting}
+                  className="btn-secondary"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  onClick={confirmDelete}
+                  disabled={deleting}
+                  className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-60"
+                >
+                {deleting ? "Deleting…" : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+    </div>  
   );
 }

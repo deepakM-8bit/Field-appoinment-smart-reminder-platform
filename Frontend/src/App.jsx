@@ -9,6 +9,7 @@ import Home from "./pages/Home.jsx";
 import LoginAdmin from "./pages/LoginAdmin.jsx";
 import Signup from "./pages/Signup.jsx";
 import LoginTechnician from "./pages/LoginTechnician.jsx";
+import TechnicianResetPassword from "./pages/TechnicianResetPassword.jsx";
 
 
 import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
@@ -63,6 +64,7 @@ export default function App() {
           } 
         >
           <Route path="dashboard" element={<TechnicianDashboard />} />
+          <Route path="update-password" element={<TechnicianResetPassword />} />
           <Route path="appointments/:id" element={<AppointmentDetail />} /> 
         </Route>
 

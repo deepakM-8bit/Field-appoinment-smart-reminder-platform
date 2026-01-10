@@ -25,7 +25,7 @@ export default function LoginTechnician() {
 
       // Redirect based on mustChangePassword
       if (res.data.mustChangePassword) {
-        navigate("/technician/reset-password");
+        navigate("/technician/update-password");
       } else {
         navigate("/technician/dashboard");
       }

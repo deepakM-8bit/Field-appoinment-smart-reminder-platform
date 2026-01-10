@@ -170,3 +170,52 @@ export const cancelAppointment = async (req, res) => {
     client.release();
   }
 };
+
+// GET /api/appointments-list/admin/:id
+export const getAdminAppointmentDetailById = async (req, res) => {
+  const ownerId = req.user.id; // admin owner
+  const { id } = req.params;
+
+  try {
+    const result = await pool.query(
+      `
+      SELECT
+        a.id,
+        a.appointment_type,
+        a.status,
+        a.category,
+        a.scheduled_date,
+        a.scheduled_time,
+        a.issue_description,
+        a.requires_parts,
+        a.estimated_duration,
+        a.estimated_cost,
+        a.final_cost,
+
+        c.name AS customer_name,
+        c.phone AS customer_phone,
+        c.email AS customer_email,
+        c.address AS customer_address,
+
+        t.name AS technician_name,
+        t.phone AS technician_phone
+
+      FROM appointments a
+      JOIN customers c ON c.id = a.customer_id
+      LEFT JOIN technicians t ON t.id = a.technician_id
+      WHERE a.id = $1
+        AND a.owner_id = $2
+      `,
+      [id, ownerId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "Appointment not found" });
+    }
+
+    return res.json(result.rows[0]);
+  } catch (err) {
+    console.error("Admin appointment detail error:", err);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
