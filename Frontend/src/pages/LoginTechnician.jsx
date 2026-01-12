@@ -66,6 +66,13 @@ export default function LoginTechnician() {
           >
             Login
           </button>
+          <button
+            type="button"
+            onClick={() => navigate("/forgot-password?type=technician")}
+            className="mt-3 w-full text-sm text-slate-500 hover:underline"
+          >
+            Forgot password?
+          </button>
         </div>
       </div>
     </div>

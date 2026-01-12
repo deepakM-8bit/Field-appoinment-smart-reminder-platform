@@ -30,6 +30,14 @@ export default function LoginAdmin() {
       <input placeholder="Email" onChange={e => setEmail(e.target.value)} />
       <input type="password" placeholder="Password" onChange={e => setPassword(e.target.value)} />
       <button onClick={handleLogin}>Login</button>
+      <button
+        type="button"
+        onClick={() => navigate("/forgot-password?type=admin")}
+        className="mt-3 w-full text-sm text-slate-500 hover:underline"
+      >
+        Forgot password?
+      </button>
+
     </div>
   );
 }
