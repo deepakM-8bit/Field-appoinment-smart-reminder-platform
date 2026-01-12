@@ -104,7 +104,7 @@ export default function AdminDashboard() {
         }
       >
         {pendingApprovals.length === 0 ? (
-          <EmptyState text="No pending repair approvals 🎉" />
+          <EmptyState text="No pending repair approvals" />
         ) : (
           <div className="space-y-3">
             {pendingApprovals.slice(0, 5).map((a) => (
@@ -136,7 +136,7 @@ export default function AdminDashboard() {
       {/* P1: Unassigned appointments (placeholder, wired next) */}
         <Section title="Unassigned Appointments">
           {unassigned.length === 0 ? (
-            <EmptyState text="No unassigned appointments 🎉" />
+            <EmptyState text="No unassigned appointments" />
           ) : (
             <div className="space-y-3">
              {unassigned.slice(0, 5).map((a) => (
@@ -166,32 +166,6 @@ export default function AdminDashboard() {
         </Section>
 
       <CreateDiagnosisPage />
-      
-      {/* P2: Secondary info */}
-      <Section title="Today’s Overview">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <div className="rounded-md border border-gray-200 p-4">
-            <p className="text-sm text-slate-500">Today’s Appointments</p>
-            <p className="mt-1 text-lg font-semibold text-slate-900">
-              —{/* wire later */}
-            </p>
-          </div>
-
-          <div className="rounded-md border border-gray-200 p-4">
-            <p className="text-sm text-slate-500">Completed Repairs</p>
-            <p className="mt-1 text-lg font-semibold text-slate-900">
-              —
-            </p>
-          </div>
-
-          <div className="rounded-md border border-gray-200 p-4">
-            <p className="text-sm text-slate-500">Revenue (Today)</p>
-            <p className="mt-1 text-lg font-semibold text-slate-900">
-              ₹ —
-            </p>
-          </div>
-        </div>
-      </Section>
 
       {selectedAppointment && (
         <AssignTechnicianModal

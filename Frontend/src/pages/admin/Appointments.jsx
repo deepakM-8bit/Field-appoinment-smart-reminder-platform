@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import api from "../../services/api.js";
 
 const FILTERS = [
@@ -105,11 +105,6 @@ export default function AdminAppointmentsPage() {
     setSelectedId(appt.id);
     fetchDetail(appt.id);
   };
-
-  const selectedAppointment = useMemo(
-    () => appointments.find((a) => a.id === selectedId),
-    [appointments, selectedId]
-  );
 
   return (
     <div className="space-y-6">
@@ -300,7 +295,7 @@ export default function AdminAppointmentsPage() {
           ) : detail ? (
             <div className="mt-4 space-y-4 text-sm">
               <div className="rounded-md border border-gray-200 p-4">
-                <p className="text-xs text-slate-500">Appointment</p>
+                <p className="text-md text-slate-500">Appointment</p>
                 <p className="mt-1 font-semibold text-slate-900">
                   #{detail.id} · {detail.appointment_type?.toUpperCase()}
                 </p>
@@ -310,7 +305,7 @@ export default function AdminAppointmentsPage() {
               </div>
 
               <div className="rounded-md border border-gray-200 p-4">
-                <p className="text-xs text-slate-500">Customer</p>
+                <p className="text-md text-slate-500">Customer</p>
                 <p className="mt-1 font-medium text-slate-900">
                   {detail.customer_name}
                 </p>
@@ -321,7 +316,7 @@ export default function AdminAppointmentsPage() {
 
               {/* Technician */}
               <div className="rounded-md border border-gray-200 p-4">
-                <p className="text-xs text-slate-500">Assigned Technician</p>
+                <p className="text-md text-slate-500">Assigned Technician</p>
 
                 {detail.technician_name ? (
                   <>
@@ -339,7 +334,7 @@ export default function AdminAppointmentsPage() {
 
 
               <div className="rounded-md border border-gray-200 p-4">
-                <p className="text-xs text-slate-500">Schedule</p>
+                <p className="text-md text-slate-500">Schedule</p>
                 <p className="mt-1 font-medium text-slate-900">
                   {formatDateDDMMYYYY(detail.scheduled_date)}
                 </p>
@@ -347,7 +342,7 @@ export default function AdminAppointmentsPage() {
               </div>
 
               <div className="rounded-md border border-gray-200 p-4">
-                <p className="text-xs text-slate-500">Service</p>
+                <p className="text-md text-slate-500">Service</p>
                 <p className="mt-1 font-medium text-slate-900">
                   {detail.category}
                 </p>
@@ -364,7 +359,7 @@ export default function AdminAppointmentsPage() {
 
               {/* Costs */}
               <div className="rounded-md border border-gray-200 p-4">
-                <p className="text-xs text-slate-500">Cost</p>
+                <p className="text-md text-slate-500">Cost</p>
                 <p className="mt-2 text-slate-600">
                   Estimated:{" "}
                   <span className="font-semibold text-slate-900">
