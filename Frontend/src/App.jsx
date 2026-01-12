@@ -10,6 +10,7 @@ import LoginAdmin from "./pages/LoginAdmin.jsx";
 import Signup from "./pages/Signup.jsx";
 import LoginTechnician from "./pages/LoginTechnician.jsx";
 import TechnicianResetPassword from "./pages/TechnicianResetPassword.jsx";
+import ForgotPassword from "./pages/ForgotPassword.jsx";
 
 
 import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
@@ -35,6 +36,7 @@ export default function App() {
           <Route path="/login" element={<LoginAdmin />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/tech-login" element={<LoginTechnician />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
         </Route>
 
         {/* Admin */}
