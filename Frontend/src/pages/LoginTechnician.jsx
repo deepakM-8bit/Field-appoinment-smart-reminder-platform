@@ -14,8 +14,8 @@ export default function LoginTechnician() {
         password,
       });
 
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("role", res.data.role);
+      localStorage.setItem("techToken", res.data.token);
+      localStorage.setItem("techRole", res.data.role);
 
       // Phase 3B flag
       localStorage.setItem(

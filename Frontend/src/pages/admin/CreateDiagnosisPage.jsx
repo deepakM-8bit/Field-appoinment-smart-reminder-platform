@@ -19,6 +19,36 @@ export default function CreateDiagnosisPage() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
 
+  const [successVisible, setSuccessVisible] = useState(false);
+
+  const clearAppointmentFields = () => {
+    setCategory("");
+    setDate("");
+    setTime("");
+  };
+
+  const clearCustomerFields = () => {
+    setName("");
+    setPhone("");
+    setEmail("");
+    setAddress("");
+    setCustomerFound(false);
+  };
+
+  const clearSearch = () => {
+    setSearchPhone("");
+    setSuggestions([]);
+    setShowDropdown(false);
+  };
+
+  const resetAll = () => {
+    clearSearch();
+    clearCustomerFields();
+    clearAppointmentFields();
+    setResult(null);
+  };
+
+
   /* ---------- Autocomplete search ---------- */
   const handlePhoneChange = async (value) => {
     setSearchPhone(value);
@@ -77,6 +107,16 @@ export default function CreateDiagnosisPage() {
       });
 
       setResult(res.data);
+      setSuccessVisible(true);
+
+      clearAppointmentFields();
+      clearCustomerFields();
+      clearSearch();
+
+      setTimeout (() => {
+        setSuccessVisible(false);
+        setResult(null);
+      }, 4000);
     } catch (err) {
       console.error("Create diagnosis error:", err);
       alert("Failed to create diagnosis appointment");
@@ -203,17 +243,27 @@ export default function CreateDiagnosisPage() {
       </div>
 
       {/* Action */}
-      <button
-        onClick={handleSubmit}
-        disabled={loading}
-        className="rounded-md bg-blue-600 px-5 py-2 text-sm font-medium text-white
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <button
+          onClick={handleSubmit}
+          disabled={loading}
+          className="rounded-md bg-blue-600 px-5 py-2 text-sm font-medium text-white
                    hover:bg-blue-700 disabled:opacity-60"
-      >
-        {loading ? "Creating…" : "Create Diagnosis"}
-      </button>
+        >
+          {loading ? "Creating…" : "Create Diagnosis"}
+        </button>
+
+        <button
+          type="button"
+          onClick={resetAll}
+          className="rounded-md bg-slate-100 px-5 py-2 text-sm font-medium text-slate-700 hover:bg-slate-200"
+        >
+          Clear Form
+        </button>
+      </div>
 
       {/* Result */}
-      {result && (
+      {successVisible && result && (
         <div className="mt-6 rounded-md border border-green-200 bg-green-50 p-4">
           <p className="text-sm font-semibold text-green-800">
             Diagnosis appointment created

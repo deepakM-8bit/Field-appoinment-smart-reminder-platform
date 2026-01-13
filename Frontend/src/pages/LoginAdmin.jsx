@@ -14,8 +14,8 @@ export default function LoginAdmin() {
         password
       });
 
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("role", res.data.role);
+      localStorage.setItem("adminToken", res.data.token);
+      localStorage.setItem("adminRole", res.data.role);
 
       navigate("/admin/dashboard");
     } catch (err) {

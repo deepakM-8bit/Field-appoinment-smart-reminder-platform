@@ -83,7 +83,6 @@ export const technicianLogin = async (req,res) => {
         }
 
         const token = jwt.sign({id: technician.id, name: technician.name, role:"technician"}, process.env.JWT_SECRET);
-        console.log(technician);
 
         return res.json({
             message:"technician login successfully",

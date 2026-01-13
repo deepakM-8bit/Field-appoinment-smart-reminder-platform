@@ -5,10 +5,16 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
+const path = window.location.pathname;
+
+let token = null;
+
+if(path.startsWith("/admin")) token = localStorage.getItem("adminToken");
+if(path.startsWith("/technician")) token = localStorage.getItem("techToken");
+
+if(token) {
+  config.headers.Authorization = `Bearer ${token}`;
+}
   return config;
 });
 
