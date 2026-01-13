@@ -1,14 +1,108 @@
-import { useEffect, useState, useCallback } from "react";
-import { useParams } from "react-router-dom";
+import { useEffect, useState, useCallback, useMemo } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import api from "../../services/api.js";
 
+/* ---------------- Helpers ---------------- */
+const to12Hour = (time) => {
+  if (!time) return "-";
+  const [hRaw, mRaw] = time.split(":");
+  const h = Number(hRaw);
+  const m = Number(mRaw);
+  const period = h >= 12 ? "PM" : "AM";
+  const hour = h % 12 || 12;
+  return `${hour}:${m.toString().padStart(2, "0")} ${period}`;
+};
+
+const formatDateDDMMYYYY = (yyyyMMdd) => {
+  if (!yyyyMMdd) return "-";
+  const [y, m, d] = String(yyyyMMdd).split("T")[0].split("-");
+  return `${d}-${m}-${y}`;
+};
+
+const prettifyStatus = (status) => String(status || "").replaceAll("_", " ");
+
+const getStatusBadgeClass = (status) => {
+  const base =
+    "inline-flex items-center rounded px-2 py-0.5 text-xs font-medium border";
+  switch (status) {
+    case "diagnosis_scheduled":
+      return `${base} bg-blue-50 text-blue-700 border-blue-100`;
+    case "diagnosis_in_progress":
+      return `${base} bg-amber-50 text-amber-700 border-amber-100`;
+    case "diagnosis_completed_waiting_approval":
+      return `${base} bg-indigo-50 text-indigo-700 border-indigo-100`;
+    case "repair_scheduled":
+      return `${base} bg-indigo-50 text-indigo-700 border-indigo-100`;
+    case "repair_in_progress":
+      return `${base} bg-amber-50 text-amber-700 border-amber-100`;
+    case "repair_completed":
+      return `${base} bg-green-50 text-green-700 border-green-100`;
+    case "waiting_for_assignment":
+      return `${base} bg-slate-100 text-slate-700 border-slate-200`;
+    case "cancelled":
+      return `${base} bg-red-50 text-red-700 border-red-100`;
+    default:
+      return `${base} bg-slate-100 text-slate-700 border-slate-200`;
+  }
+};
+
+function InfoRow({ label, value }) {
+  return (
+    <div className="flex items-start justify-between gap-4">
+      <span className="text-sm text-slate-500">{label}</span>
+      <span className="text-sm font-medium text-slate-900 text-right">
+        {value}
+      </span>
+    </div>
+  );
+}
+
+function Step({ title, active, done }) {
+  return (
+    <div className="flex items-center gap-3">
+      <div
+        className={`h-6 w-6 rounded-full border flex items-center justify-center text-xs font-semibold
+        ${
+          done
+            ? "bg-green-600 text-white border-green-600"
+            : active
+            ? "bg-blue-600 text-white border-blue-600"
+            : "bg-white text-slate-500 border-slate-200"
+        }`}
+      >
+        {done ? "✓" : ""}
+      </div>
+      <div className="min-w-0">
+        <p
+          className={`text-sm font-medium ${
+            active ? "text-slate-900" : "text-slate-600"
+          }`}
+        >
+          {title}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- Component ---------------- */
 export default function AppointmentDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
 
   const [appointment, setAppointment] = useState(null);
-  const [otp, setOtp] = useState("");
-  const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
+
+  // Notifications
+  const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState("info"); // info | success | error
+
+  // OTP
+  const [otp, setOtp] = useState("");
+  const [otpRequested, setOtpRequested] = useState(false);
+  const [otpLoading, setOtpLoading] = useState(false);
+
+  // Diagnosis form
   const [issue, setIssue] = useState("");
   const [duration, setDuration] = useState("");
   const [estimatedCost, setEstimatedCost] = useState("");
@@ -17,57 +111,213 @@ export default function AppointmentDetail() {
   const [repairDate, setRepairDate] = useState("");
   const [repairTime, setRepairTime] = useState("");
 
+  const [submitting, setSubmitting] = useState(false);
 
- 
-    const fetchAppointment = useCallback(async () => {
-      try {
-        const res = await api.get(`/api/appointments/${id}`);
-        setAppointment(res.data);
-      } catch (err) {
-        console.error("Fetch appointment error:", err);
-        setMessage("Failed to load appointment");
-      } finally {
-        setLoading(false);
-      }
-    }, [id]);
+  const fetchAppointment = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await api.get(`/api/appointments/${id}`);
+      setAppointment(res.data);
+    } catch (err) {
+      console.error("Fetch appointment error:", err);
+      setMessageType("error");
+      setMessage("Failed to load appointment");
+    } finally {
+      setLoading(false);
+    }
+  }, [id]);
 
-    useEffect(() => {
-      fetchAppointment();  
-    },[fetchAppointment]);
-    
-  
+  useEffect(() => {
+    fetchAppointment();
+  }, [fetchAppointment]);
 
-  const requestOtp = async () => {
+  // Clear message after some time
+  useEffect(() => {
+    if (!message) return;
+    const t = setTimeout(() => setMessage(""), 3500);
+    return () => clearTimeout(t);
+  }, [message]);
+
+  const headerTitle = useMemo(() => {
+    if (!appointment) return `Appointment`;
+    return `Appointment #${appointment.id}`;
+  }, [appointment]);
+
+  const typeLabel =
+    appointment?.appointment_type === "repair" ? "Repair" : "Diagnosis";
+
+  // Stepper logic
+  const stepState = useMemo(() => {
+    if (!appointment) return { steps: [], activeIndex: 0 };
+
+    const status = appointment.status;
+
+    // diagnosis workflow
+    if (appointment.appointment_type === "diagnosis") {
+      const steps = ["OTP Verification", "Diagnosis In Progress", "Quote Sent"];
+      let activeIndex = 0;
+
+      if (status === "diagnosis_scheduled") activeIndex = 0;
+      if (status === "diagnosis_in_progress") activeIndex = 1;
+      if (status === "diagnosis_completed_waiting_approval") activeIndex = 2;
+
+      return { steps, activeIndex };
+    }
+
+    // repair workflow
+    if (appointment.appointment_type === "repair") {
+      const steps = ["OTP Verification", "Repair In Progress", "Payment", "Completed"];
+      let activeIndex = 0;
+
+      if (status === "repair_scheduled") activeIndex = 0;
+      if (status === "repair_in_progress") activeIndex = 1;
+      if (status === "repair_completed") activeIndex = 3;
+
+      return { steps, activeIndex };
+    }
+
+    return { steps: [], activeIndex: 0 };
+  }, [appointment]);
+
+  /* ---------------- OTP Actions ---------------- */
+  const requestOtpDiagnosis = async () => {
+    setOtpLoading(true);
+    setMessage("");
+
     try {
       await api.post(`/api/otp/${id}/request-diagnosis-otp`);
+      setOtpRequested(true);
+      setMessageType("success");
       setMessage("OTP sent to customer");
     } catch (err) {
       console.error("Request OTP error:", err);
+      setMessageType("error");
       setMessage("Failed to send OTP");
+    } finally {
+      setOtpLoading(false);
     }
   };
 
-  const verifyOtp = async () => {
-    if (!otp) {
-      alert("Enter OTP");
-      return;
-    }
+  const verifyOtpDiagnosis = async () => {
+    if (!otp.trim()) return alert("Enter OTP");
+
+    setOtpLoading(true);
+    setMessage("");
 
     try {
       await api.post(`/api/otp/${id}/verify-diagnosis-otp`, { otp });
-      setMessage("OTP verified. Diagnosis started.");
       setOtp("");
+      setOtpRequested(false);
+      setMessageType("success");
+      setMessage("OTP verified. Diagnosis started.");
+
+      await fetchAppointment();
     } catch (err) {
       console.error("Verify OTP error:", err);
+      setMessageType("error");
       setMessage("Invalid OTP");
+    } finally {
+      setOtpLoading(false);
     }
   };
 
-    const submitDiagnosis = async () => {
-      if (!issue || !duration || !estimatedCost || !finalCost || !repairDate) {
-         alert("Please fill all required fields");
-         return;
+  const requestOtpRepair = async () => {
+    setOtpLoading(true);
+    setMessage("");
+
+    try {
+      await api.post(`/api/otp/${id}/request-repair-otp`);
+      setOtpRequested(true);
+      setMessageType("success");
+      setMessage("Repair OTP sent to customer");
+    } catch (err) {
+      console.error("Request Repair OTP error:", err);
+      setMessageType("error");
+      setMessage("Failed to send repair OTP");
+    } finally {
+      setOtpLoading(false);
     }
+  };
+
+  const verifyOtpRepair = async () => {
+    if (!otp.trim()) return alert("Enter OTP");
+
+    setOtpLoading(true);
+    setMessage("");
+
+    try {
+      await api.post(`/api/otp/${id}/verify-repair-otp`, { otp });
+      setOtp("");
+      setOtpRequested(false);
+      setMessageType("success");
+      setMessage("Repair started");
+
+      await fetchAppointment();
+    } catch (err) {
+      console.error("Verify Repair OTP error:", err);
+      setMessageType("error");
+      setMessage("Invalid OTP");
+    } finally {
+      setOtpLoading(false);
+    }
+  };
+
+  const requestOtpPayment = async () => {
+    if (!finalCost) return alert("Enter final amount");
+
+    setOtpLoading(true);
+    setMessage("");
+
+    try {
+      await api.post(`/api/otp/${id}/request-payment-otp`);
+      setOtpRequested(true);
+      setMessageType("success");
+      setMessage("Payment OTP sent to customer");
+    } catch (err) {
+      console.error("Request Payment OTP error:", err);
+      setMessageType("error");
+      setMessage("Failed to send payment OTP");
+    } finally {
+      setOtpLoading(false);
+    }
+  };
+
+  const verifyOtpPayment = async () => {
+    if (!otp.trim()) return alert("Enter OTP");
+
+    setOtpLoading(true);
+    setMessage("");
+
+    try {
+      await api.post(`/api/otp/${id}/verify-payment-otp`, {
+        otp,
+        final_cost: Number(finalCost),
+      });
+
+      setOtp("");
+      setOtpRequested(false);
+      setMessageType("success");
+      setMessage("Payment completed successfully");
+
+      await fetchAppointment();
+    } catch (err) {
+      console.error("Payment verification error:", err);
+      setMessageType("error");
+      setMessage("Payment verification failed");
+    } finally {
+      setOtpLoading(false);
+    }
+  };
+
+  /* ---------------- Diagnosis Submission ---------------- */
+  const submitDiagnosis = async () => {
+    if (!issue || !duration || !estimatedCost || !finalCost || !repairDate) {
+      alert("Please fill all required fields");
+      return;
+    }
+
+    setSubmitting(true);
+    setMessage("");
 
     try {
       await api.post(`/api/appointments/${id}/diagnosis-complete`, {
@@ -77,217 +327,404 @@ export default function AppointmentDetail() {
         final_cost: Number(finalCost),
         requires_parts: requiresParts,
         suggested_repair_date: repairDate,
-        suggested_repair_time: repairTime
-    });
+        suggested_repair_time: repairTime,
+      });
 
-     setMessage("Diagnosis completed. Quote sent to customer.");
-     await fetchAppointment();
+      setMessageType("success");
+      setMessage("Diagnosis completed. Quote sent to customer.");
 
-   } catch (err) {
-     console.error("Diagnosis completion error:", err);
-     alert("Failed to complete diagnosis");
+      // Clear form for UX
+      setIssue("");
+      setDuration("");
+      setEstimatedCost("");
+      setRequiresParts(false);
+      setRepairDate("");
+      setRepairTime("");
+
+      await fetchAppointment();
+    } catch (err) {
+      console.error("Diagnosis completion error:", err);
+      alert("Failed to complete diagnosis");
+    } finally {
+      setSubmitting(false);
     }
-   };
+  };
 
-   const requestRepairOtp = async () => {
-  try {
-    await api.post(`/api/otp/${id}/request-repair-otp`);
-    setMessage("Repair OTP sent to customer");
-  } catch (err) {
-    setMessage("Failed to send repair OTP");
-    console.log("error otp sending:",err.message);
+  /* ---------------- UI states ---------------- */
+  if (loading) {
+    return (
+      <div className="py-20 text-center text-slate-500">
+        Loading appointment…
+      </div>
+    );
   }
-};
 
-const verifyRepairOtp = async () => {
-  if (!otp) return alert("Enter OTP");
-
-  try {
-    await api.post(`/api/otp/${id}/verify-repair-otp`, { otp });
-    setOtp("");
-    setMessage("Repair started");
-    window.location.reload(); // simple refresh
-  } catch (err) {
-    setMessage("Invalid OTP");
-    console.log("invalid otp:",err.message);
+  if (!appointment) {
+    return (
+      <div className="py-20 text-center text-slate-500">
+        {message || "Appointment not found"}
+      </div>
+    );
   }
-};
-
-    const requestPaymentOtp = async () => {
-  if (!finalCost) return alert("Enter final amount");
-
-  try {
-    await api.post(`/api/otp/${id}/request-payment-otp`);
-    setMessage("Payment OTP sent");
-  } catch (err) {
-    setMessage("Failed to send payment OTP");
-    console.log("sending otp error:", err.message);
-  }
-};
-
-const verifyPaymentOtp = async () => {
-  if (!otp) return alert("Enter OTP");
-
-  try {
-    await api.post(`/api/otp/${id}/verify-payment-otp`, {
-      otp,
-      final_cost: Number(finalCost)
-    });
-
-    setMessage("Payment completed successfully");
-    setOtp("");
-    window.location.reload();
-  } catch (err) {
-    setMessage("Payment verification failed");
-    console.log("payment verification error:", err.message);   
-  }
-};
-
-
-  if (loading) return <p>Loading appointment...</p>;
-  if (!appointment) return <p>{message}</p>;
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h2>Appointment #{appointment.id}</h2>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-xl font-semibold text-slate-900">{headerTitle}</h1>
+          <p className="mt-1 text-sm text-slate-500">
+            Review appointment details and complete tasks
+          </p>
+        </div>
 
-      <p><b>Customer:</b> {appointment.customer_name}</p>
-      <p><b>Category:</b> {appointment.category}</p>
-      <p><b>Status:</b> {appointment.status}</p>
-      <p><b>Time:</b> {appointment.scheduled_time}</p>
+        <button
+          onClick={() => navigate(-1)}
+          className="rounded-md bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-200"
+        >
+          Back
+        </button>
+      </div>
 
-      <hr />
-
-      {appointment.status === "diagnosis_scheduled" && (
-        <>
-          <button onClick={requestOtp}>Request OTP</button>
-        </>
-      )}
-
-      {appointment.status === "diagnosis_scheduled" && (
-        <div style={{ marginTop: "10px" }}>
-          <input
-            placeholder="Enter OTP"
-            value={otp}
-            onChange={e => setOtp(e.target.value)}
-          />
-          <button onClick={verifyOtp} style={{ marginLeft: "8px" }}>
-            Verify OTP
-          </button>
+      {/* Toast message */}
+      {message && (
+        <div
+          className={`rounded-md border p-3 text-sm ${
+            messageType === "success"
+              ? "border-green-200 bg-green-50 text-green-800"
+              : messageType === "error"
+              ? "border-red-200 bg-red-50 text-red-800"
+              : "border-slate-200 bg-slate-50 text-slate-700"
+          }`}
+        >
+          {message}
         </div>
       )}
 
-      {message && <p style={{ marginTop: "10px" }}>{message}</p>}
+      {/* Summary Card */}
+      <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="space-y-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-lg font-semibold text-slate-900">
+                {appointment.customer_name}
+              </span>
+              <span className="rounded bg-slate-100 px-2 py-0.5 text-xs text-slate-700">
+                {typeLabel}
+              </span>
+              <span className={getStatusBadgeClass(appointment.status)}>
+                {prettifyStatus(appointment.status)}
+              </span>
+            </div>
 
-      {appointment.status === "diagnosis_in_progress" && (
-        <div style={{ marginTop: "20px" }}>
-          <h3>Complete Diagnosis</h3>
+            <p className="text-sm text-slate-500">
+              Category:{" "}
+              <span className="font-medium text-slate-900">
+                {appointment.category}
+              </span>
+            </p>
+          </div>
 
-          <textarea
-            placeholder="Issue description"
-            value={issue}
-            onChange={e => setIssue(e.target.value)}
-            rows={3}
-            style={{ width: "100%" }}
-        />
+          <div className="w-full max-w-sm space-y-2">
+            <InfoRow
+              label="Schedule"
+              value={`${formatDateDDMMYYYY(appointment.scheduled_date)} • ${to12Hour(
+                appointment.scheduled_time
+              )}`}
+            />
+            <InfoRow label="Phone" value={appointment.customer_phone || "-"} />
+            <InfoRow label="Address" value={appointment.customer_address || "-"} />
+          </div>
+        </div>
+      </div>
 
-        <input
-          placeholder="Estimated duration (minutes)"
-          value={duration}
-          onChange={e => setDuration(e.target.value)}
-          type="number"
-        />
+      {/* Stepper */}
+      {stepState.steps.length > 0 && (
+        <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
+          <h2 className="text-sm font-semibold text-slate-900">Progress</h2>
+          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {stepState.steps.map((s, idx) => (
+              <Step
+                key={s}
+                title={s}
+                active={idx === stepState.activeIndex}
+                done={idx < stepState.activeIndex}
+              />
+            ))}
+          </div>
+        </div>
+      )}
 
-        <input
-          placeholder="Estimated cost"
-          value={estimatedCost}
-          onChange={e => setEstimatedCost(e.target.value)}
-          type="number"
-        />
+      {/* Action Panel */}
+      <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
+        <h2 className="text-sm font-semibold text-slate-900">
+          Actions
+        </h2>
+        <p className="mt-1 text-sm text-slate-500">
+          Complete the required steps for this appointment
+        </p>
 
-        <input
-          placeholder="Final cost"
-          value={finalCost}
-          onChange={e => setFinalCost(e.target.value)}
-          type="number"
-        />
+        {/* Diagnosis Scheduled */}
+        {appointment.status === "diagnosis_scheduled" && (
+          <div className="mt-5 space-y-4">
+            <div className="flex flex-wrap gap-3">
+              <button
+                onClick={requestOtpDiagnosis}
+                disabled={otpLoading}
+                className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
+              >
+                {otpLoading ? "Sending…" : "Request OTP"}
+              </button>
 
-       <label>
-         <input
-           type="checkbox"
-           checked={requiresParts}
-           onChange={e => setRequiresParts(e.target.checked)}
-         />
-         Requires parts
-       </label>
+              <button
+                onClick={() => fetchAppointment()}
+                className="rounded-md bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-200"
+              >
+                Refresh Status
+              </button>
+            </div>
 
-       <br />
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <input
+                placeholder="Enter OTP"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+                className="rounded-md border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600"
+              />
+              <button
+                onClick={verifyOtpDiagnosis}
+                disabled={otpLoading || !otpRequested}
+                className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-60"
+              >
+                Verify OTP
+              </button>
+              <div className="text-xs text-slate-500 sm:flex sm:items-center">
+                Ask customer for OTP and verify to start diagnosis.
+              </div>
+            </div>
+          </div>
+        )}
 
-       <input
-         type="date"
-         value={repairDate}
-         onChange={e => setRepairDate(e.target.value)}
-       />
+        {/* Diagnosis In Progress */}
+        {appointment.status === "diagnosis_in_progress" && (
+          <div className="mt-5 space-y-4">
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+              {/* Diagnosis details */}
+              <div className="rounded-md border border-gray-200 p-4">
+                <h3 className="text-sm font-semibold text-slate-900">
+                  Diagnosis Details
+                </h3>
 
-       <input
-         type="time"
-         value={repairTime}
-         onChange={e => setRepairTime(e.target.value)}
-       />
+                <div className="mt-3 space-y-3">
+                  <textarea
+                    placeholder="Issue description *"
+                    value={issue}
+                    onChange={(e) => setIssue(e.target.value)}
+                    rows={4}
+                    className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600"
+                  />
 
-       <br />
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <input
+                      placeholder="Estimated duration (mins) *"
+                      value={duration}
+                      onChange={(e) => setDuration(e.target.value)}
+                      type="number"
+                      className="rounded-md border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600"
+                    />
 
-       <button onClick={submitDiagnosis}>
-         Submit Diagnosis
-      </button>
-    </div>
-   )}
-    {appointment.status === "repair_scheduled" && (
-  <>
-    <button onClick={requestRepairOtp}>
-      Start Repair (Request OTP)
-    </button>
+                    <input
+                      placeholder="Estimated cost (₹) *"
+                      value={estimatedCost}
+                      onChange={(e) => setEstimatedCost(e.target.value)}
+                      type="number"
+                      className="rounded-md border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600"
+                    />
+                  </div>
 
-    <div style={{ marginTop: "10px" }}>
-      <input
-        placeholder="Enter OTP"
-        value={otp}
-        onChange={e => setOtp(e.target.value)}
-      />
-      <button onClick={verifyRepairOtp} style={{ marginLeft: "8px" }}>
-        Verify OTP
-      </button>
-    </div>
-  </>
-)}
-    {appointment.status === "repair_in_progress" && (
-  <>
-    <h3>Complete Repair & Payment</h3>
+                  <input
+                    placeholder="Final cost (₹) *"
+                    value={finalCost}
+                    onChange={(e) => setFinalCost(e.target.value)}
+                    type="number"
+                    className="rounded-md border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600"
+                  />
 
-    <input
-      placeholder="Final Amount"
-      type="number"
-      value={finalCost}
-      onChange={e => setFinalCost(e.target.value)}
-    />
+                  <label className="flex items-center gap-2 text-sm text-slate-700">
+                    <input
+                      type="checkbox"
+                      checked={requiresParts}
+                      onChange={(e) => setRequiresParts(e.target.checked)}
+                    />
+                    Requires parts
+                  </label>
+                </div>
+              </div>
 
-    <button onClick={requestPaymentOtp}>
-      Request Payment OTP
-    </button>
+              {/* Suggested repair schedule */}
+              <div className="rounded-md border border-gray-200 p-4">
+                <h3 className="text-sm font-semibold text-slate-900">
+                  Suggested Repair Schedule
+                </h3>
 
-    <div style={{ marginTop: "10px" }}>
-      <input
-        placeholder="Enter Payment OTP"
-        value={otp}
-        onChange={e => setOtp(e.target.value)}
-      />
-      <button onClick={verifyPaymentOtp}>
-        Verify Payment
-      </button>
-    </div>
-  </>
-)}
+                <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <div>
+                    <label className="text-xs font-medium text-slate-600">
+                      Repair Date *
+                    </label>
+                    <input
+                      type="date"
+                      value={repairDate}
+                      onChange={(e) => setRepairDate(e.target.value)}
+                      className="mt-1 w-full rounded-md border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600"
+                    />
+                  </div>
 
+                  <div>
+                    <label className="text-xs font-medium text-slate-600">
+                      Repair Time (optional)
+                    </label>
+                    <input
+                      type="time"
+                      value={repairTime}
+                      onChange={(e) => setRepairTime(e.target.value)}
+                      className="mt-1 w-full rounded-md border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  onClick={submitDiagnosis}
+                  disabled={submitting}
+                  className="mt-4 w-full rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
+                >
+                  {submitting ? "Submitting…" : "Submit Diagnosis"}
+                </button>
+
+                <p className="mt-2 text-xs text-slate-500">
+                  Submitting diagnosis sends quote to customer for approval.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Repair Scheduled */}
+        {appointment.status === "repair_scheduled" && (
+          <div className="mt-5 space-y-4">
+            <div className="flex flex-wrap gap-3">
+              <button
+                onClick={requestOtpRepair}
+                disabled={otpLoading}
+                className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
+              >
+                {otpLoading ? "Sending…" : "Start Repair (Request OTP)"}
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <input
+                placeholder="Enter OTP"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+                className="rounded-md border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600"
+              />
+              <button
+                onClick={verifyOtpRepair}
+                disabled={otpLoading}
+                className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-60"
+              >
+                Verify OTP
+              </button>
+              <div className="text-xs text-slate-500 sm:flex sm:items-center">
+                Verify OTP to begin repair work.
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Repair In Progress */}
+        {appointment.status === "repair_in_progress" && (
+          <div className="mt-5 space-y-4">
+            <div className="rounded-md border border-gray-200 p-4">
+              <h3 className="text-sm font-semibold text-slate-900">
+                Complete Repair & Payment
+              </h3>
+              <p className="mt-1 text-sm text-slate-500">
+                Enter final amount and verify payment OTP.
+              </p>
+
+              <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                <input
+                  placeholder="Final Amount (₹)"
+                  type="number"
+                  value={finalCost}
+                  onChange={(e) => setFinalCost(e.target.value)}
+                  className="rounded-md border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600"
+                />
+
+                <button
+                  onClick={requestOtpPayment}
+                  disabled={otpLoading}
+                  className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
+                >
+                  {otpLoading ? "Sending…" : "Request Payment OTP"}
+                </button>
+
+                <div className="text-xs text-slate-500 sm:flex sm:items-center">
+                  OTP will be sent to customer for payment confirmation.
+                </div>
+              </div>
+
+              <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                <input
+                  placeholder="Enter Payment OTP"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value)}
+                  className="rounded-md border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600"
+                />
+
+                <button
+                  onClick={verifyOtpPayment}
+                  disabled={otpLoading}
+                  className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-60"
+                >
+                  Verify Payment
+                </button>
+
+                <div className="text-xs text-slate-500 sm:flex sm:items-center">
+                  Verify OTP to mark payment as completed.
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Completed */}
+        {appointment.status === "repair_completed" && (
+          <div className="mt-5 rounded-md border border-green-200 bg-green-50 p-4">
+            <p className="text-sm font-semibold text-green-800">
+              Repair completed successfully
+            </p>
+            <p className="mt-1 text-sm text-green-700">
+              Payment is completed and appointment is closed.
+            </p>
+          </div>
+        )}
+
+        {/* Fallback */}
+        {![
+          "diagnosis_scheduled",
+          "diagnosis_in_progress",
+          "repair_scheduled",
+          "repair_in_progress",
+          "repair_completed",
+        ].includes(appointment.status) && (
+          <div className="mt-5 text-sm text-slate-500">
+            No actions available for current status.
+          </div>
+        )}
+      </div>
     </div>
   );
 }

@@ -60,7 +60,7 @@ export default function TechnicianDashboard() {
     setError("");
 
     try {
-      const res = await api.get("/api/appointments/technician", {
+      const res = await api.get("/api/appointments/technician/appointments-bydate", {
         params: { date: dateValue },
       });
 
@@ -75,7 +75,6 @@ export default function TechnicianDashboard() {
 
   useEffect(() => {
     fetchAppointments(selectedDate);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDate]);
 
   const summary = useMemo(() => {
@@ -218,7 +217,7 @@ export default function TechnicianDashboard() {
                   <tr
                     key={a.id}
                     onClick={() => navigate(`/technician/appointments/${a.id}`)}
-                    className="cursor-pointer hover:bg-slate-50"
+                    className="cursor-pointer hover:bg-slate-100"
                   >
                     <td className="px-4 py-3 font-medium text-slate-900">
                       #{a.id}

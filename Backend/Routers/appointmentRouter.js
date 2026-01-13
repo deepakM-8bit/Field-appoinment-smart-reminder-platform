@@ -8,7 +8,7 @@ import { getUnassignedAppointments, assignTechnicianManually,
 const router = express.Router();
 
 router.post("/diagnosis",authenticate,createAppointment);
-router.get("/technician/appointments",authenticate,getAppointmentsForTechnicianByDate);
+router.get("/technician/appointments-bydate",authenticate,getAppointmentsForTechnicianByDate);
 router.get("/pending-approvals",authenticate,listPendingApprovals);
 router.get("/unassigned", authenticate, getUnassignedAppointments);
 router.get("/customers/search",authenticate,getCustomerByPhone);
