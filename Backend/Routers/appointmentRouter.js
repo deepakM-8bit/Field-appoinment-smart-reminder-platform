@@ -11,7 +11,7 @@ router.post("/diagnosis",authenticate,createAppointment);
 router.get("/technician/appointments",authenticate,getAppointmentsForTechnicianByDate);
 router.get("/pending-approvals",authenticate,listPendingApprovals);
 router.get("/unassigned", authenticate, getUnassignedAppointments);
-router.get("/customers/search",authenticate,getCustomerByPhone)
+router.get("/customers/search",authenticate,getCustomerByPhone);
 router.get("/:id",authenticate,getAppointmentById);
 router.post("/:id/diagnosis-complete",authenticate,completeDiagnosis);
 router.post("/:id/repair-approval",authenticate,approveRepair);
