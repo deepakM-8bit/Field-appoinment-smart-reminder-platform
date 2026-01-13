@@ -688,12 +688,15 @@ export const getAppointmentById = async (req, res) => {
 
 
 //technican view the allocated job
-export const getTodayAppointmentsForTechnician = async (req, res) => {
+export const getAppointmentsForTechnicianByDate = async (req, res) => {
   if (req.user.role !== "technician") {
     return res.status(403).json({ message: "Access denied" });
   }
 
   const technicianId = req.user.id;
+
+  // if date not provided, fallback to today
+  const date = req.query.date || new Date().toISOString().split("T")[0];
 
   try {
     const result = await pool.query(
@@ -704,24 +707,25 @@ export const getTodayAppointmentsForTechnician = async (req, res) => {
         a.status,
         a.category,
         a.scheduled_time,
+        a.scheduled_date,
         c.name AS customer_name,
         c.address AS customer_address
       FROM appointments a
       JOIN customers c ON c.id = a.customer_id
       WHERE a.technician_id = $1
-        AND a.scheduled_date = CURRENT_DATE
+        AND a.scheduled_date = $2
       ORDER BY a.scheduled_time ASC
       `,
-      [technicianId]
+      [technicianId, date]
     );
 
     return res.json(result.rows);
-
   } catch (err) {
-    console.error("Technician appointments error:", err);
+    console.error("Technician appointments (by date) error:", err);
     return res.status(500).json({ message: "Internal server error" });
   }
 };
+
 
 // admin view pending approvals
 export const listPendingApprovals = async (req, res) => {
