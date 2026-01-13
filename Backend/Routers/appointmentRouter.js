@@ -1,13 +1,14 @@
 import express from 'express';
 import authenticate from '../Middleware/authMiddleware.js';
 import { getUnassignedAppointments, assignTechnicianManually, 
-    approveRepair, completeDiagnosis, createAppointment, getAppointmentById,
-     getTodayAppointmentsForTechnician, listPendingApprovals, getCustomerByPhone } from '../Controllers/appointmentController.js';
+    approveRepair, completeDiagnosis, createAppointment,
+     getAppointmentById,listPendingApprovals, getCustomerByPhone, 
+     getAppointmentsForTechnicianByDate} from '../Controllers/appointmentController.js';
 
 const router = express.Router();
 
 router.post("/diagnosis",authenticate,createAppointment);
-router.get("/technician/today",authenticate,getTodayAppointmentsForTechnician);
+router.get("/technician/appointments",authenticate,getAppointmentsForTechnicianByDate);
 router.get("/pending-approvals",authenticate,listPendingApprovals);
 router.get("/unassigned", authenticate, getUnassignedAppointments);
 router.get("/customers/search",authenticate,getCustomerByPhone)
