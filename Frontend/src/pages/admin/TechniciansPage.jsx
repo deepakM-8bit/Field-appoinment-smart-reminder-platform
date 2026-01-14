@@ -98,9 +98,7 @@ export default function TechniciansPage() {
       });
 
       setTechnicians((prev) =>
-        prev.map((x) =>
-          x.id === t.id ? { ...x, active: !x.active } : x
-        )
+        prev.map((x) => (x.id === t.id ? { ...x, active: !x.active } : x))
       );
     } catch (err) {
       console.error(err);
@@ -139,9 +137,7 @@ export default function TechniciansPage() {
     try {
       await api.delete(`/api/technicians/${deleteTech.id}`);
 
-      // optimistic update
       setTechnicians((prev) => prev.filter((t) => t.id !== deleteTech.id));
-
       setDeleteTech(null);
     } catch (err) {
       console.error(err);
@@ -152,7 +148,9 @@ export default function TechniciansPage() {
   };
 
   if (loading) {
-    return <p className="py-20 text-center text-slate-500">Loading technicians…</p>;
+    return (
+      <p className="py-20 text-center text-slate-500">Loading technicians…</p>
+    );
   }
 
   if (error) {
@@ -164,9 +162,7 @@ export default function TechniciansPage() {
       {/* Header */}
       <div>
         <h1 className="text-xl font-semibold text-slate-900">Technicians</h1>
-        <p className="mt-1 text-sm text-slate-500">
-          Manage Technicians
-        </p>
+        <p className="mt-1 text-sm text-slate-500">Manage technicians</p>
       </div>
 
       {/* Add Technician */}
@@ -176,239 +172,378 @@ export default function TechniciansPage() {
         </h2>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-
-          <input 
-            className="rounded-md border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600 input"
-            placeholder="Name *" 
-            value={name} 
-            onChange={(e)=>setName(e.target.value)} 
+          <input
+            className="rounded-md border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600"
+            placeholder="Name *"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
           />
 
-          <input 
-            className="rounded-md border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600 input" 
-            placeholder="Phone *" 
-            value={phone} 
-            onChange={(e)=>setPhone(e.target.value)} 
+          <input
+            className="rounded-md border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600"
+            placeholder="Phone *"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
           />
 
-          <input 
-            className="rounded-md border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600 input" 
-            placeholder="Email" 
-            value={email} 
-            onChange={(e)=>setEmail(e.target.value)} 
+          <input
+            className="rounded-md border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
           />
 
-          <input 
-            className="rounded-md border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600 input" 
-            placeholder="Temporary Password *" 
-            value={password} 
-            onChange={(e)=>setPassword(e.target.value)} 
+          <input
+            className="rounded-md border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600"
+            placeholder="Temporary Password *"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
           />
 
-          <label className="text-sm font-semibold text-gray-600 mx-1">
-            Work start time
-            <input type="time" 
-              className="rounded-md border border-gray-200 mx-2 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600 input" 
-              value={workStart} 
-              onChange={(e)=>setWorkStart(e.target.value)} 
+          {/* Work start */}
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-medium text-slate-600">
+              Work start time *
+            </label>
+            <input
+              type="time"
+              className="rounded-md border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600"
+              value={workStart}
+              onChange={(e) => setWorkStart(e.target.value)}
             />
-          </label>
+          </div>
 
-          <label className="text-sm font-semibold text-gray-600 mx-1">
-            Work end time
-            <input type="time" 
-              className="rounded-md border border-gray-200 mx-2 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600 input" 
-              value={workEnd} 
-              onChange={(e)=>setWorkEnd(e.target.value)} 
+          {/* Work end */}
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-medium text-slate-600">
+              Work end time *
+            </label>
+            <input
+              type="time"
+              className="rounded-md border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600"
+              value={workEnd}
+              onChange={(e) => setWorkEnd(e.target.value)}
             />
-          </label>
+          </div>
 
-          <input 
-            className="rounded-md border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600 input lg:col-span-2" 
-            placeholder="Category (comma separated) *" 
-            value={category} 
-            onChange={(e)=>setCategory(e.target.value)} 
+          <input
+            className="rounded-md border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600 sm:col-span-2 lg:col-span-3"
+            placeholder="Category (comma separated) *"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
           />
         </div>
 
-        <div className="mt-4 flex items-center gap-4">
-          <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" checked={active} onChange={(e)=>setActive(e.target.checked)} />
+        <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <label className="flex items-center gap-2 text-sm text-slate-700">
+            <input
+              type="checkbox"
+              checked={active}
+              onChange={(e) => setActive(e.target.checked)}
+            />
             Active
           </label>
 
-          <button onClick={handleAddTechnician} className="bg-green-600 hover:bg-green-700 text-white rounded-md px-2 py-1 font-semibold">
+          <button
+            onClick={handleAddTechnician}
+            className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          >
             Add Technician
           </button>
         </div>
       </div>
 
-      {/* Table */}
-      <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
-        <table className="w-full">
-          <thead className="bg-slate-50 text-sm text-slate-600">
-            <tr>
-              <th className="px-4 py-3">Name</th>
-              <th className="px-4 py-3">Phone</th>
-              <th className="px-4 py-3">Categories</th>
-              <th className="px-4 py-3">Work Hours</th>
-              <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3">Action</th>
-            </tr>
-          </thead>
+      {/* -------------------- LIST VIEW (Mobile) -------------------- */}
+      <div className="space-y-3 md:hidden">
+        {technicians.map((t) => (
+          <div
+            key={t.id}
+            className={`rounded-lg border border-gray-200 bg-white p-4 shadow-sm ${
+              !t.active ? "opacity-70" : ""
+            }`}
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold text-slate-900">{t.name}</p>
+                <p className="text-xs text-slate-500">{t.phone}</p>
+                {t.email && (
+                  <p className="text-xs text-slate-500">{t.email}</p>
+                )}
+              </div>
 
-          <tbody>
-            {technicians.map((t) => (
-              <tr
-                key={t.id}
-                className={`border-t text-sm hover:bg-slate-50 ${!t.active ? "opacity-60" : ""}`}
+              <button
+                onClick={() => toggleTechnicianStatus(t)}
+                className={`relative inline-flex h-5 w-9 items-center rounded-full ${
+                  t.active ? "bg-green-500" : "bg-slate-300"
+                }`}
               >
-                <td className="px-4 py-3 font-medium">{t.name}</td>
-                <td className="px-4 py-3">{t.phone}</td>
+                <span
+                  className={`h-4 w-4 rounded-full bg-white transition ${
+                    t.active ? "translate-x-4" : "translate-x-1"
+                  }`}
+                />
+              </button>
+            </div>
 
-                <td className="px-4 py-3">
-                  <div className="flex flex-wrap gap-1">
-                    {t.category.split(",").map((c, i) => (
-                      <span 
-                        key={i} 
-                        className="rounded bg-slate-100 px-1.5 py-0.5 text-xs font-semibold text-slate-700"
-                      >
-                        {c.trim()}
-                      </span>
-                    ))}
-                  </div>
-                </td>
+            <div className="mt-3 flex flex-wrap gap-1">
+              {t.category.split(",").map((c, i) => (
+                <span
+                  key={i}
+                  className="rounded bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-700"
+                >
+                  {c.trim()}
+                </span>
+              ))}
+            </div>
 
-                <td className="px-4 py-3">
-                  {to12Hour(t.work_start_time)} – {to12Hour(t.work_end_time)}
-                </td>
+            <p className="mt-3 text-xs text-slate-600">
+              Work Hours:{" "}
+              <span className="font-semibold text-slate-900">
+                {to12Hour(t.work_start_time)} – {to12Hour(t.work_end_time)}
+              </span>
+            </p>
 
-                <td className="px-4 py-3">
-                  <button
-                    onClick={() => toggleTechnicianStatus(t)}
-                    className={`relative inline-flex h-5 w-9 items-center rounded-full ${t.active ? "bg-green-500" : "bg-slate-300"}`}
-                  >
-                    <span className={`h-4 w-4 rounded-full bg-white transition ${t.active ? "translate-x-4" : "translate-x-1"}`} />
-                  </button>
-                </td>
+            <div className="mt-4 flex gap-3">
+              <button
+                onClick={() => setEditTech(t)}
+                className="rounded-md bg-slate-100 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-200"
+              >
+                Edit
+              </button>
+              <button
+                onClick={() => setDeleteTech(t)}
+                className="rounded-md bg-red-50 px-3 py-1.5 text-sm font-medium text-red-700 hover:bg-red-100"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
 
-                <td className="px-4 py-3">
-                  <button
-                    onClick={() => setEditTech(t)}
-                    className="text-blue-600 hover:underline"
-                  >
-                    Edit
-                  </button>
-
-                  <button
-                    onClick={() => setDeleteTech(t)}
-                    className="text-red-600 hover:underline"
-                  >
-                    Delete
-                  </button>                    
-                </td>
+      {/* -------------------- TABLE VIEW (Desktop) -------------------- */}
+      <div className="hidden md:block rounded-lg border border-gray-200 bg-white shadow-sm">
+        <div className="overflow-x-auto">
+          <table className="min-w-[900px] w-full">
+            <thead className="bg-slate-50 text-sm text-slate-600">
+              <tr>
+                <th className="px-4 py-3 text-left">Name</th>
+                <th className="px-4 py-3 text-left">Phone</th>
+                <th className="px-4 py-3 text-left">Categories</th>
+                <th className="px-4 py-3 text-left">Work Hours</th>
+                <th className="px-4 py-3 text-left">Status</th>
+                <th className="px-4 py-3 text-right">Action</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+
+            <tbody>
+              {technicians.map((t) => (
+                <tr
+                  key={t.id}
+                  className={`border-t text-sm hover:bg-slate-50 ${
+                    !t.active ? "opacity-70" : ""
+                  }`}
+                >
+                  <td className="px-4 py-3 font-medium text-slate-900">
+                    {t.name}
+                  </td>
+                  <td className="px-4 py-3 text-slate-700">{t.phone}</td>
+
+                  <td className="px-4 py-3">
+                    <div className="flex flex-wrap gap-1">
+                      {t.category.split(",").map((c, i) => (
+                        <span
+                          key={i}
+                          className="rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700"
+                        >
+                          {c.trim()}
+                        </span>
+                      ))}
+                    </div>
+                  </td>
+
+                  <td className="px-4 py-3 text-slate-700">
+                    {to12Hour(t.work_start_time)} – {to12Hour(t.work_end_time)}
+                  </td>
+
+                  <td className="px-4 py-3">
+                    <button
+                      onClick={() => toggleTechnicianStatus(t)}
+                      className={`relative inline-flex h-5 w-9 items-center rounded-full ${
+                        t.active ? "bg-green-500" : "bg-slate-300"
+                      }`}
+                    >
+                      <span
+                        className={`h-4 w-4 rounded-full bg-white transition ${
+                          t.active ? "translate-x-4" : "translate-x-1"
+                        }`}
+                      />
+                    </button>
+                  </td>
+
+                  <td className="px-4 py-3 text-right space-x-4">
+                    <button
+                      onClick={() => setEditTech(t)}
+                      className="text-sm font-medium text-blue-600 hover:underline"
+                    >
+                      Edit
+                    </button>
+
+                    <button
+                      onClick={() => setDeleteTech(t)}
+                      className="text-sm font-medium text-red-600 hover:underline"
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Edit Modal */}
       {editTech && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="w-full max-w-lg rounded-lg bg-white p-5">
-            <h2 className="mb-4 text-sm font-semibold">Edit Technician</h2>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="w-full max-w-lg rounded-lg bg-white p-5 shadow-lg">
+            <h2 className="mb-4 text-sm font-semibold text-slate-900">
+              Edit Technician
+            </h2>
 
-            <div className="grid grid-cols-2 gap-3">
-              <input 
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <input
                 placeholder="Name"
-                className="rounded-md border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600 input" 
-                value={editTech.name} 
-                onChange={(e)=>setEditTech({...editTech,name:e.target.value})} 
+                className="rounded-md border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600"
+                value={editTech.name}
+                onChange={(e) =>
+                  setEditTech({ ...editTech, name: e.target.value })
+                }
               />
+
               <input
-                placeholder="Phone no" 
-                className="rounded-md border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600 input" 
-                value={editTech.phone} 
-                onChange={(e)=>setEditTech({...editTech,phone:e.target.value})} 
+                placeholder="Phone no"
+                className="rounded-md border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600"
+                value={editTech.phone}
+                onChange={(e) =>
+                  setEditTech({ ...editTech, phone: e.target.value })
+                }
               />
-              <input 
+
+              <input
                 placeholder="Email"
-                className="rounded-md border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600 input" 
-                value={editTech.email || ""} 
-                onChange={(e)=>setEditTech({...editTech,email:e.target.value})} 
+                className="rounded-md border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600"
+                value={editTech.email || ""}
+                onChange={(e) =>
+                  setEditTech({ ...editTech, email: e.target.value })
+                }
               />
+
               <input
-                placeholder="Category" 
-                className="rounded-md border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600 input" 
-                value={editTech.category} 
-                onChange={(e)=>setEditTech({...editTech,category:e.target.value})} 
+                placeholder="Category"
+                className="rounded-md border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600"
+                value={editTech.category}
+                onChange={(e) =>
+                  setEditTech({ ...editTech, category: e.target.value })
+                }
               />
-              <input type="time" 
-                className="rounded-md border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600 input" 
-                value={to12Hour(editTech.work_start_time)} 
-                onChange={(e)=>setEditTech({...editTech,work_start_time:e.target.value})} 
-              />
-              <input type="time" 
-                className="rounded-md border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600 input" 
-                value={to12Hour(editTech.work_end_time)} 
-                onChange={(e)=>setEditTech({...editTech,work_end_time:e.target.value})} 
-              />
-              <input 
-                className="rounded-md border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600 input col-span-2" 
-                placeholder="New password (optional)" 
-                value={editPassword} onChange={(e)=>setEditPassword(e.target.value)} 
+
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-medium text-slate-600">
+                  Work start
+                </label>
+                <input
+                  type="time"
+                  className="rounded-md border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600"
+                  value={editTech.work_start_time || ""}
+                  onChange={(e) =>
+                    setEditTech({
+                      ...editTech,
+                      work_start_time: e.target.value,
+                    })
+                  }
+                />
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-medium text-slate-600">
+                  Work end
+                </label>
+                <input
+                  type="time"
+                  className="rounded-md border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600"
+                  value={editTech.work_end_time || ""}
+                  onChange={(e) =>
+                    setEditTech({
+                      ...editTech,
+                      work_end_time: e.target.value,
+                    })
+                  }
+                />
+              </div>
+
+              <input
+                className="rounded-md border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600 sm:col-span-2"
+                placeholder="New password (optional)"
+                value={editPassword}
+                onChange={(e) => setEditPassword(e.target.value)}
               />
             </div>
 
             <div className="mt-4 flex justify-end gap-3">
-              <button onClick={() => setEditTech(null)} className="">
+              <button
+                onClick={() => setEditTech(null)}
+                className="rounded-md bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-200"
+              >
                 Cancel
               </button>
-              <button onClick={saveEdit} className="rounded-md px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-60">
+              <button
+                onClick={saveEdit}
+                className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+              >
                 Save Changes
               </button>
             </div>
           </div>
         </div>
       )}
-  
 
       {/* Delete Confirmation Modal */}
-        {deleteTech && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-            <div className="w-full max-w-md rounded-lg bg-white p-5 shadow-lg">
-              <h2 className="text-sm font-semibold text-slate-900">
-                Delete Technician
-              </h2>
+      {deleteTech && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="w-full max-w-md rounded-lg bg-white p-5 shadow-lg">
+            <h2 className="text-sm font-semibold text-slate-900">
+              Delete Technician
+            </h2>
 
-              <p className="mt-2 text-sm text-slate-600">
-                Are you sure you want to delete{" "}
-                <span className="font-medium text-slate-900">{deleteTech.name}</span>
-                  ? This action cannot be undone.
-              </p>
+            <p className="mt-2 text-sm text-slate-600">
+              Are you sure you want to delete{" "}
+              <span className="font-medium text-slate-900">
+                {deleteTech.name}
+              </span>
+              ? This action cannot be undone.
+            </p>
 
-              <div className="mt-5 flex justify-end gap-3">
-                <button
-                  onClick={() => setDeleteTech(null)}
-                  disabled={deleting}
-                  className="btn-secondary"
-                >
-                  Cancel
-                </button>
+            <div className="mt-5 flex justify-end gap-3">
+              <button
+                onClick={() => setDeleteTech(null)}
+                disabled={deleting}
+                className="rounded-md bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-200 disabled:opacity-60"
+              >
+                Cancel
+              </button>
 
-                <button
-                  onClick={confirmDelete}
-                  disabled={deleting}
-                  className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-60"
-                >
+              <button
+                onClick={confirmDelete}
+                disabled={deleting}
+                className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-60"
+              >
                 {deleting ? "Deleting…" : "Delete"}
               </button>
             </div>
           </div>
         </div>
       )}
-
-    </div>  
+    </div>
   );
 }
