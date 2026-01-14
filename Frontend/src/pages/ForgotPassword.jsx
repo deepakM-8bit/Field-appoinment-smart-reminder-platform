@@ -97,6 +97,9 @@ export default function ForgotPassword() {
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
       <div className="w-full max-w-sm rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+        <p className="text-xs font-semibold tracking-wide text-blue-600 mb-3">
+          FIELD APPOINTMENT PLATFORM
+        </p>
         <h2 className="text-lg font-semibold text-slate-900">
           Forgot Password
         </h2>

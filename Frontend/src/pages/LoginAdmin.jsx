@@ -34,7 +34,7 @@ export default function LoginAdmin() {
       navigate("/admin/dashboard");
     } catch (err) {
       console.log("admin login error:", err);
-      setError("Login failed. Please check your credentials and try again.");
+      setError("Login failed. Please check your email & password and try again.");
     } finally {
       setSubmitting(false);
     }
@@ -64,8 +64,8 @@ export default function LoginAdmin() {
               {/* User Logo */}
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                width="28"
-                height="28"
+                width="35"
+                height="35"
                 viewBox="0 0 24 24"
                 fill="none"
                 className="text-blue-700"
