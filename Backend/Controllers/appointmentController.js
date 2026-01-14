@@ -279,9 +279,9 @@ export const completeDiagnosis = async (req,res) => {
 
     if(
         !issue_description ||
-        !estimated_duration ||
-        !estimated_cost ||
-        !requires_parts ||
+        Number(estimated_duration) <= 0 ||
+        Number(estimated_cost) <= 0 ||
+        requires_parts === undefined ||
         !suggested_repair_date
     ) {
         return res.status(400).json({message: "missing diagnosis details"});
@@ -329,9 +329,11 @@ export const completeDiagnosis = async (req,res) => {
               estimated_duration = $3,
               estimated_cost = $4,
               final_cost = $5,
+              scheduled_date = $6,
+              scheduled_time = $7,
               status = 'diagnosis_completed_waiting_approval',
               updated_at = now()
-            WHERE id = $6
+            WHERE id = $8
             `,
             [
                 issue_description,
@@ -339,6 +341,8 @@ export const completeDiagnosis = async (req,res) => {
                 estimated_duration,
                 estimated_cost,
                 final_cost,
+                suggested_repair_date,
+                suggested_repair_time || null,
                 appointmentId
             ]
         );
@@ -469,41 +473,39 @@ export const approveRepair = async (req,res) => {
         }
 
         const repairRes = await client.query(
-            `
-            INSERT INTO appointments (
-            owner_id,
-            customer_id,
-            technician_id,
-            appointment_type,
-            status,
-            category,
-            issue_description,
-            requires_parts,
-            estimated_duration,
-            estimated_cost,
-            final_cost,
-            scheduled_date,
-            scheduled_time  
-            )
-            VALUES (
-            $1,$2,$3,'repair',$4,$5,$6,$7,$8,$9,$10,$11,$12
-            )
-            RETURNING *
-            `,
-            [
-                diag.owner_id,
-                diag.customer_id,
-                technicianId,
-                repairStatus,
-                diag.category,
-                diag.issue_description,
-                diag.requires_parts,
-                diag.estimated_duration,
-                diag.estimated_cost,
-                diag.final_cost,
-                diag.scheduled_date,
-                diag.scheduled_time
-            ]
+          `
+          UPDATE appointments
+          SET
+            technician_id = $1,
+            appointment_type = 'repair',
+            status = $2,
+            category = $3,
+            issue_description = $4,
+            requires_parts = $5,
+            estimated_duration = $6,
+            estimated_cost = $7,
+            final_cost = $8,
+            scheduled_date = $9,
+            scheduled_time = $10,
+            updated_at = now()
+          WHERE id = $11
+            AND owner_id = $12
+          RETURNING *
+          `,
+          [
+            technicianId,                 
+            repairStatus,                 
+            diag.category,                
+            diag.issue_description,       
+            diag.requires_parts,          
+            diag.estimated_duration,      
+            diag.estimated_cost,          
+            diag.final_cost,              
+            diag.scheduled_date,          
+            diag.scheduled_time,          
+            diagnosisId,                  
+            userId                        
+          ]
         );
 
         const repair = repairRes.rows[0];
@@ -607,15 +609,15 @@ export const approveRepair = async (req,res) => {
             ]
         );
 
-        await client.query(
-            `
-            UPDATE appointments 
+        // await client.query(
+        //     `
+        //     UPDATE appointments 
             
-            SET status = 'repair_scheduled', updated_at = now()
-            WHERE id = $1
-            `,
-            [diagnosisId]           
-        );
+        //     SET status = 'repair_scheduled', updated_at = now()
+        //     WHERE id = $1
+        //     `,
+        //     [diagnosisId]           
+        // );
 
         console.log({
             technicianEmail: diag.technician_email,

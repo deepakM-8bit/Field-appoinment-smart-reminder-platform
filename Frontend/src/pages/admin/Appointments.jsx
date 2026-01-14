@@ -208,7 +208,7 @@ export default function AdminAppointmentsPage() {
                         <tr
                           key={a.id}
                           onClick={() => onRowClick(a)}
-                          className={`cursor-pointer hover:bg-slate-50 ${
+                          className={`cursor-pointer hover:bg-slate-100 ${
                             isSelected ? "bg-blue-50" : ""
                           }`}
                         >

@@ -20,6 +20,6 @@ export const OTP_CONFIG = {
     nextStatus: "repair_completed", // payment does not change appointment status
     emailSubject: "OTP for Payment Confirmation",
     logEventSend: "payment_otp_sent",
-    logEventVerify: "payment_completed"
+    logEventVerify: "repair_completed"
   }
 };

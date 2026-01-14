@@ -104,7 +104,7 @@ export default function AppointmentDetail() {
 
   // Diagnosis form
   const [issue, setIssue] = useState("");
-  const [duration, setDuration] = useState("");
+  const [durationHours, setDurationHours] = useState("");
   const [estimatedCost, setEstimatedCost] = useState("");
   const [finalCost, setFinalCost] = useState("");
   const [requiresParts, setRequiresParts] = useState(false);
@@ -170,7 +170,7 @@ export default function AppointmentDetail() {
       let activeIndex = 0;
 
       if (status === "repair_scheduled") activeIndex = 0;
-      if (status === "repair_in_progress") activeIndex = 1;
+      if (status === "repair_in_progress") activeIndex = 2;
       if (status === "repair_completed") activeIndex = 3;
 
       return { steps, activeIndex };
@@ -311,7 +311,7 @@ export default function AppointmentDetail() {
 
   /* ---------------- Diagnosis Submission ---------------- */
   const submitDiagnosis = async () => {
-    if (!issue || !duration || !estimatedCost || !finalCost || !repairDate) {
+    if (!issue || !durationHours || !estimatedCost || !repairDate) {
       alert("Please fill all required fields");
       return;
     }
@@ -322,7 +322,7 @@ export default function AppointmentDetail() {
     try {
       await api.post(`/api/appointments/${id}/diagnosis-complete`, {
         issue_description: issue,
-        estimated_duration: Number(duration),
+        estimated_duration: Math.round(Number(durationHours) * 60),
         estimated_cost: Number(estimatedCost),
         final_cost: Number(finalCost),
         requires_parts: requiresParts,
@@ -335,7 +335,7 @@ export default function AppointmentDetail() {
 
       // Clear form for UX
       setIssue("");
-      setDuration("");
+      setDurationHours("");
       setEstimatedCost("");
       setRequiresParts(false);
       setRepairDate("");
@@ -439,7 +439,7 @@ export default function AppointmentDetail() {
       </div>
 
       {/* Stepper */}
-      {stepState.steps.length > 0 && (
+      {appointment.status !== "cancelled" && stepState.steps.length > 0 && (
         <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
           <h2 className="text-sm font-semibold text-slate-900">Progress</h2>
           <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -525,13 +525,23 @@ export default function AppointmentDetail() {
                   />
 
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                    <input
-                      placeholder="Estimated duration (mins) *"
-                      value={duration}
-                      onChange={(e) => setDuration(e.target.value)}
-                      type="number"
-                      className="rounded-md border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600"
-                    />
+                    <div>
+                      <label className="text-xs font-medium text-slate-600">
+                        Estimated duration (hours) *
+                      </label>
+                      <input
+                        placeholder="Eg: 1.5"
+                        value={durationHours}
+                        onChange={(e) => setDurationHours(e.target.value)}
+                        type="number"
+                        step="0.25"
+                        min="0.25"
+                        className="mt-1 w-full rounded-md border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600"
+                      />
+                      <p className="mt-1 text-xs text-slate-500">
+                        Example: 1.5 hours = 90 minutes
+                      </p>
+                    </div>
 
                     <input
                       placeholder="Estimated cost (₹) *"
@@ -720,7 +730,7 @@ export default function AppointmentDetail() {
           "repair_in_progress",
           "repair_completed",
         ].includes(appointment.status) && (
-          <div className="mt-5 text-sm text-slate-500">
+          <div className="mt-5 text-sm text-red-700">
             No actions available for current status.
           </div>
         )}
