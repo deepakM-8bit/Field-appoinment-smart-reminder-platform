@@ -1,7 +1,6 @@
 import { Outlet, Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import AppointmentsModal from "../pages/admin/Appointments.jsx";
-
+import ThemeToggle from "../components/ThemeToggle.jsx"
 /* ---------- Reusable NavLink (DECLARED OUTSIDE) ---------- */
 function AdminNavLink({ to, children, onClick }) {
   return (
@@ -37,6 +36,10 @@ export default function AdminLayout() {
           <div className="px-6 py-4 text-lg font-semibold text-white">
             Admin Panel
           </div>
+
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+          </div> 
 
           <nav className="flex-1 space-y-1 px-3">
             <AdminNavLink to="/admin/dashboard" onClick={() => setSidebarOpen(false)}>
@@ -81,6 +84,9 @@ export default function AdminLayout() {
           <span className="text-sm font-semibold text-slate-900">
             Admin Panel
           </span>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+          </div>          
           <button
             onClick={() => setSidebarOpen(true)}
             className="rounded-md p-2 text-slate-700 hover:bg-gray-100"
