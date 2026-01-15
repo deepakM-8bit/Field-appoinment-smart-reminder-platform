@@ -1,8 +1,6 @@
-import { createContext, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { ThemeContext } from "./themeContext.js";
 
-const ThemeContext = createContext(null);
-
-// ✅ lazy initializer = no setState in useEffect
 function getInitialTheme() {
   const saved = localStorage.getItem("theme");
   if (saved === "light" || saved === "dark") return saved;
@@ -14,25 +12,25 @@ function getInitialTheme() {
 export function ThemeProvider({ children }) {
   const [theme, setTheme] = useState(getInitialTheme);
 
-  // ✅ only external sync here (DOM + localStorage)
   useEffect(() => {
     const root = document.documentElement;
-
-    if (theme === "dark") root.classList.add("dark");
-    else root.classList.remove("dark");
-
+    root.classList.toggle("dark", theme === "dark");
     localStorage.setItem("theme", theme);
   }, [theme]);
 
-  const value = useMemo(() => {
-    return {
+  const value = useMemo(
+    () => ({
       theme,
       setTheme,
-      toggleTheme: () => setTheme((prev) => (prev === "dark" ? "light" : "dark")),
-    };
-  }, [theme]);
+      toggleTheme: () =>
+        setTheme((prev) => (prev === "dark" ? "light" : "dark")),
+    }),
+    [theme]
+  );
 
-  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
+  return (
+    <ThemeContext.Provider value={value}>
+      {children}
+    </ThemeContext.Provider>
+  );
 }
-
-

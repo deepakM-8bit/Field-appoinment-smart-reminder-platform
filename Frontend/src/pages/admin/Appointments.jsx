@@ -32,37 +32,50 @@ const prettify = (s) => String(s || "").replaceAll("_", " ");
 function StatusBadge({ status }) {
   const base =
     "inline-flex items-center rounded border px-2 py-0.5 text-xs font-medium";
+
   switch (status) {
     case "repair_completed":
       return (
-        <span className={`${base} bg-green-50 border-green-200 text-green-800`}>
+        <span
+          className={`${base} bg-green-50 border-green-200 text-green-800 dark:bg-green-500/10 dark:border-green-500/30 dark:text-green-300`}
+        >
           {prettify(status)}
         </span>
       );
+
     case "repair_in_progress":
     case "diagnosis_in_progress":
       return (
-        <span className={`${base} bg-amber-50 border-amber-200 text-amber-800`}>
+        <span
+          className={`${base} bg-amber-50 border-amber-200 text-amber-800 dark:bg-amber-500/10 dark:border-amber-500/30 dark:text-amber-300`}
+        >
           {prettify(status)}
         </span>
       );
+
     case "diagnosis_completed_waiting_approval":
       return (
         <span
-          className={`${base} bg-indigo-50 border-indigo-200 text-indigo-800`}
+          className={`${base} bg-indigo-50 border-indigo-200 text-indigo-800 dark:bg-indigo-500/10 dark:border-indigo-500/30 dark:text-indigo-300`}
         >
           Waiting approval
         </span>
       );
+
     case "cancelled":
       return (
-        <span className={`${base} bg-red-50 border-red-200 text-red-800`}>
+        <span
+          className={`${base} bg-red-50 border-red-200 text-red-800 dark:bg-red-500/10 dark:border-red-500/30 dark:text-red-300`}
+        >
           Cancelled
         </span>
       );
+
     default:
       return (
-        <span className={`${base} bg-slate-50 border-slate-200 text-slate-700`}>
+        <span
+          className={`${base} bg-slate-50 border-slate-200 text-slate-700 dark:bg-slate-800/50 dark:border-slate-700 dark:text-slate-200`}
+        >
           {prettify(status)}
         </span>
       );
@@ -72,11 +85,19 @@ function StatusBadge({ status }) {
 function TypeBadge({ type }) {
   const base =
     "inline-flex items-center rounded px-2 py-0.5 text-xs font-medium";
+
   if (type === "repair") {
-    return <span className={`${base} bg-blue-50 text-blue-700`}>Repair</span>;
+    return (
+      <span className={`${base} bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300`}>
+        Repair
+      </span>
+    );
   }
+
   return (
-    <span className={`${base} bg-slate-100 text-slate-700`}>Diagnosis</span>
+    <span className={`${base} bg-slate-100 text-slate-700 dark:bg-slate-800/50 dark:text-slate-200`}>
+      Diagnosis
+    </span>
   );
 }
 
@@ -85,15 +106,15 @@ function AppointmentDetailModal({ open, onClose, loading, detail }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-      <div className="w-full max-w-lg rounded-xl bg-white shadow-2xl overflow-hidden">
+      <div className="w-full max-w-lg overflow-hidden rounded-xl bg-white shadow-2xl dark:bg-slate-900">
         {/* Header */}
-        <div className="flex items-center justify-between border-b px-5 py-4">
-          <h2 className="text-sm font-semibold text-slate-900">
+        <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4 dark:border-slate-800">
+          <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
             Appointment Details
           </h2>
           <button
             onClick={onClose}
-            className="rounded-md p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+            className="rounded-md p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
           >
             ✕
           </button>
@@ -102,20 +123,26 @@ function AppointmentDetailModal({ open, onClose, loading, detail }) {
         {/* Body */}
         <div className="max-h-[75vh] overflow-auto px-5 py-4">
           {!detail ? (
-            <p className="text-sm text-slate-500">No details loaded.</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              No details loaded.
+            </p>
           ) : loading ? (
-            <p className="text-sm text-slate-500">Loading details…</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              Loading details…
+            </p>
           ) : detail?.error ? (
-            <p className="text-sm text-red-600">{detail.message}</p>
+            <p className="text-sm text-red-600 dark:text-red-300">{detail.message}</p>
           ) : (
             <div className="space-y-3 text-sm">
               {/* Appointment */}
-              <div className="rounded-md border border-gray-200 p-4">
-                <p className="text-xs text-slate-500">Appointment</p>
-                <p className="mt-1 font-semibold text-slate-900">
+              <div className="rounded-md border border-gray-200 p-4 dark:border-slate-800 dark:bg-slate-950/40">
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Appointment
+                </p>
+                <p className="mt-1 font-semibold text-slate-900 dark:text-slate-100">
                   #{detail.id} · {detail.appointment_type?.toUpperCase()}
                 </p>
-                <p className="mt-1 text-slate-600">
+                <p className="mt-1 text-slate-600 dark:text-slate-300">
                   Status:{" "}
                   <span className="font-medium">
                     {detail.status?.replaceAll("_", " ")}
@@ -124,45 +151,53 @@ function AppointmentDetailModal({ open, onClose, loading, detail }) {
               </div>
 
               {/* Customer */}
-              <div className="rounded-md border border-gray-200 p-4">
-                <p className="text-xs text-slate-500">Customer</p>
-                <p className="mt-1 font-medium text-slate-900">
+              <div className="rounded-md border border-gray-200 p-4 dark:border-slate-800 dark:bg-slate-950/40">
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Customer
+                </p>
+                <p className="mt-1 font-medium text-slate-900 dark:text-slate-100">
                   {detail.customer_name}
                 </p>
-                <p className="text-slate-600">{detail.customer_phone}</p>
-                <p className="text-slate-600">{detail.customer_email || "-"}</p>
-                <p className="mt-1 text-slate-600">
+                <p className="text-slate-600 dark:text-slate-300">{detail.customer_phone}</p>
+                <p className="text-slate-600 dark:text-slate-300">{detail.customer_email || "-"}</p>
+                <p className="mt-1 text-slate-600 dark:text-slate-300">
                   {detail.customer_address || "-"}
                 </p>
               </div>
 
               {/* Technician */}
-              <div className="rounded-md border border-gray-200 p-4">
-                <p className="text-xs text-slate-500">Assigned Technician</p>
+              <div className="rounded-md border border-gray-200 p-4 dark:border-slate-800 dark:bg-slate-950/40">
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Assigned Technician
+                </p>
                 {detail.technician_name ? (
                   <>
-                    <p className="mt-1 font-medium text-slate-900">
+                    <p className="mt-1 font-medium text-slate-900 dark:text-slate-100">
                       {detail.technician_name}
                     </p>
-                    <p className="text-slate-600">
+                    <p className="text-slate-600 dark:text-slate-300">
                       {detail.technician_phone || "-"}
                     </p>
                   </>
                 ) : (
-                  <p className="mt-1 text-slate-500">Not assigned yet</p>
+                  <p className="mt-1 text-slate-500 dark:text-slate-400">
+                    Not assigned yet
+                  </p>
                 )}
               </div>
 
               {/* Service */}
-              <div className="rounded-md border border-gray-200 p-4">
-                <p className="text-xs text-slate-500">Service</p>
-                <p className="mt-1 font-medium text-slate-900">
+              <div className="rounded-md border border-gray-200 p-4 dark:border-slate-800 dark:bg-slate-950/40">
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Service
+                </p>
+                <p className="mt-1 font-medium text-slate-900 dark:text-slate-100">
                   {detail.category}
                 </p>
-                <p className="mt-2 text-slate-600">
+                <p className="mt-2 text-slate-600 dark:text-slate-300">
                   Issue: {detail.issue_description || "-"}
                 </p>
-                <p className="text-slate-600">
+                <p className="text-slate-600 dark:text-slate-300">
                   Requires parts:{" "}
                   <span className="font-medium">
                     {detail.requires_parts ? "Yes" : "No"}
@@ -171,21 +206,23 @@ function AppointmentDetailModal({ open, onClose, loading, detail }) {
               </div>
 
               {/* Cost */}
-              <div className="rounded-md border border-gray-200 p-4">
-                <p className="text-xs text-slate-500">Cost</p>
-                <p className="mt-2 text-slate-600">
+              <div className="rounded-md border border-gray-200 p-4 dark:border-slate-800 dark:bg-slate-950/40">
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Cost
+                </p>
+                <p className="mt-2 text-slate-600 dark:text-slate-300">
                   Estimated:{" "}
-                  <span className="font-semibold text-slate-900">
+                  <span className="font-semibold text-slate-900 dark:text-slate-100">
                     ₹ {detail.estimated_cost ?? "-"}
                   </span>
                 </p>
-                <p className="text-slate-600">
+                <p className="text-slate-600 dark:text-slate-300">
                   Final:{" "}
-                  <span className="font-semibold text-slate-900">
+                  <span className="font-semibold text-slate-900 dark:text-slate-100">
                     ₹ {detail.final_cost ?? "-"}
                   </span>
                 </p>
-                <p className="text-slate-600">
+                <p className="text-slate-600 dark:text-slate-300">
                   Duration:{" "}
                   <span className="font-medium">
                     {detail.estimated_duration
@@ -199,10 +236,10 @@ function AppointmentDetailModal({ open, onClose, loading, detail }) {
         </div>
 
         {/* Footer */}
-        <div className="border-t px-5 py-4">
+        <div className="border-t border-gray-200 px-5 py-4 dark:border-slate-800">
           <button
             onClick={onClose}
-            className="w-full rounded-md bg-slate-900 py-2 text-sm font-medium text-white hover:bg-slate-800"
+            className="w-full rounded-md bg-slate-900 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
           >
             Close
           </button>
@@ -305,14 +342,16 @@ export default function AdminAppointmentsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-xl font-semibold text-slate-900">Appointments</h1>
-        <p className="mt-1 text-sm text-slate-500">
+        <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
+          Appointments
+        </h1>
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
           Track diagnosis and repair appointments in one place
         </p>
       </div>
 
       {/* Filters + search */}
-      <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
+      <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-wrap gap-2">
             {FILTERS.map((f) => (
@@ -327,8 +366,8 @@ export default function AdminAppointmentsPage() {
                 }}
                 className={`rounded-md px-4 py-2 text-sm font-medium ${
                   filter === f.key
-                    ? "bg-slate-900 text-white"
-                    : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                    ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
+                    : "bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800/60 dark:text-slate-200 dark:hover:bg-slate-800"
                 }`}
               >
                 {f.label}
@@ -343,14 +382,16 @@ export default function AdminAppointmentsPage() {
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && fetchAppointments()}
-              className="w-full sm:w-72 rounded-md border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
+              className="w-full sm:w-72 rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400
+                         focus:outline-none focus:ring-2 focus:ring-blue-600
+                         dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:ring-blue-500"
             />
             <button
               onClick={() => {
                 setPage(1);
                 fetchAppointments();
               }}
-              className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+              className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
             >
               Search
             </button>
@@ -361,12 +402,12 @@ export default function AdminAppointmentsPage() {
       {/* Content grid */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* List */}
-        <div className="lg:col-span-2 rounded-lg border border-gray-200 bg-white shadow-sm">
-          <div className="border-b px-5 py-4">
-            <h2 className="text-sm font-semibold text-slate-900">
+        <div className="lg:col-span-2 rounded-lg border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <div className="border-b border-gray-200 px-5 py-4 dark:border-slate-800">
+            <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
               Appointment List
             </h2>
-            <p className="mt-1 text-xs text-slate-500">
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
               Click an item to view full details
             </p>
           </div>
@@ -374,11 +415,11 @@ export default function AdminAppointmentsPage() {
           {/* Mobile cards */}
           <div className="p-4 space-y-3 lg:hidden">
             {loading ? (
-              <p className="py-10 text-center text-slate-500">
+              <p className="py-10 text-center text-slate-500 dark:text-slate-400">
                 Loading appointments...
               </p>
             ) : appointments.length === 0 ? (
-              <p className="py-10 text-center text-slate-500">
+              <p className="py-10 text-center text-slate-500 dark:text-slate-400">
                 No appointments found
               </p>
             ) : (
@@ -391,16 +432,16 @@ export default function AdminAppointmentsPage() {
                     onClick={() => onSelect(a)}
                     className={`w-full text-left rounded-lg border p-4 shadow-sm transition ${
                       isSelected
-                        ? "border-blue-300 bg-blue-50"
-                        : "border-gray-200 bg-white hover:bg-slate-50"
+                        ? "border-blue-300 bg-blue-50 dark:border-blue-500/40 dark:bg-blue-500/10"
+                        : "border-gray-200 bg-white hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-950/40 dark:hover:bg-slate-800/40"
                     }`}
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold text-slate-900">
+                        <p className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
                           {a.customer_name}
                         </p>
-                        <p className="mt-0.5 text-xs text-slate-500">
+                        <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
                           {a.customer_phone}
                         </p>
                       </div>
@@ -412,16 +453,16 @@ export default function AdminAppointmentsPage() {
                     </div>
 
                     <div className="mt-3 flex items-center justify-between gap-3">
-                      <div className="text-xs text-slate-600">
-                        <p className="font-medium text-slate-900">
+                      <div className="text-xs text-slate-600 dark:text-slate-300">
+                        <p className="font-medium text-slate-900 dark:text-slate-100">
                           {formatDateDDMMYYYY(a.scheduled_date)}
                         </p>
-                        <p className="text-slate-500">
+                        <p className="text-slate-500 dark:text-slate-400">
                           {formatTime12h(a.scheduled_time)}
                         </p>
                       </div>
 
-                      <p className="text-xs text-slate-500 font-medium">
+                      <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
                         #{a.id}
                       </p>
                     </div>
@@ -433,7 +474,7 @@ export default function AdminAppointmentsPage() {
                             e.stopPropagation();
                             handleCancel(a.id);
                           }}
-                          className="rounded-md bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-100"
+                          className="rounded-md bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-100 dark:bg-red-500/10 dark:text-red-300 dark:hover:bg-red-500/20"
                         >
                           Cancel
                         </button>
@@ -448,12 +489,12 @@ export default function AdminAppointmentsPage() {
           {/* Desktop table */}
           <div className="hidden lg:block overflow-x-auto">
             {loading ? (
-              <p className="py-10 text-center text-slate-500">
+              <p className="py-10 text-center text-slate-500 dark:text-slate-400">
                 Loading appointments...
               </p>
             ) : (
               <table className="w-full text-sm">
-                <thead className="border-b bg-slate-50 text-left text-slate-600">
+                <thead className="border-b bg-slate-50 text-left text-slate-600 dark:border-slate-800 dark:bg-slate-950/40 dark:text-slate-300">
                   <tr>
                     <th className="px-5 py-3">ID</th>
                     <th className="py-3">Customer</th>
@@ -465,10 +506,10 @@ export default function AdminAppointmentsPage() {
                   </tr>
                 </thead>
 
-                <tbody className="divide-y">
+                <tbody className="divide-y divide-gray-200 dark:divide-slate-800">
                   {appointments.length === 0 ? (
                     <tr>
-                      <td colSpan="7" className="py-10 text-center text-slate-500">
+                      <td colSpan="7" className="py-10 text-center text-slate-500 dark:text-slate-400">
                         No appointments found
                       </td>
                     </tr>
@@ -479,24 +520,24 @@ export default function AdminAppointmentsPage() {
                         <tr
                           key={a.id}
                           onClick={() => onSelect(a)}
-                          className={`cursor-pointer hover:bg-slate-100 ${
-                            isSelected ? "bg-blue-50" : ""
+                          className={`cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800/40 ${
+                            isSelected ? "bg-blue-50 dark:bg-blue-500/10" : ""
                           }`}
                         >
-                          <td className="px-5 py-4 font-medium text-slate-900">
+                          <td className="px-5 py-4 font-medium text-slate-900 dark:text-slate-100">
                             #{a.id}
                           </td>
-                          <td className="py-4">{a.customer_name}</td>
-                          <td className="py-4">{a.customer_phone}</td>
-                          <td className="py-4 capitalize">{a.appointment_type}</td>
-                          <td className="py-4">{a.status?.replaceAll("_", " ")}</td>
+                          <td className="py-4 text-slate-700 dark:text-slate-200">{a.customer_name}</td>
+                          <td className="py-4 text-slate-700 dark:text-slate-200">{a.customer_phone}</td>
+                          <td className="py-4 capitalize text-slate-700 dark:text-slate-200">{a.appointment_type}</td>
+                          <td className="py-4 text-slate-700 dark:text-slate-200">{a.status?.replaceAll("_", " ")}</td>
 
                           <td className="py-4">
                             <div className="flex flex-col leading-4">
-                              <span className="font-medium text-slate-900">
+                              <span className="font-medium text-slate-900 dark:text-slate-100">
                                 {formatDateDDMMYYYY(a.scheduled_date)}
                               </span>
-                              <span className="text-xs text-slate-500">
+                              <span className="text-xs text-slate-500 dark:text-slate-400">
                                 {formatTime12h(a.scheduled_time)}
                               </span>
                             </div>
@@ -510,7 +551,7 @@ export default function AdminAppointmentsPage() {
                                     e.stopPropagation();
                                     handleCancel(a.id);
                                   }}
-                                  className="text-sm font-medium text-red-600 hover:underline"
+                                  className="text-sm font-medium text-red-600 hover:underline dark:text-red-300"
                                 >
                                   Cancel
                                 </button>
@@ -526,15 +567,15 @@ export default function AdminAppointmentsPage() {
           </div>
 
           {/* Pagination */}
-          <div className="flex flex-wrap justify-center gap-2 border-t px-5 py-4">
+          <div className="flex flex-wrap justify-center gap-2 border-t border-gray-200 px-5 py-4 dark:border-slate-800">
             {Array.from({ length: totalPages }).map((_, i) => (
               <button
                 key={i}
                 onClick={() => setPage(i + 1)}
                 className={`rounded-md px-3 py-1 text-sm ${
                   page === i + 1
-                    ? "bg-slate-900 text-white"
-                    : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                    ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
+                    : "bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800/60 dark:text-slate-200 dark:hover:bg-slate-800"
                 }`}
               >
                 {i + 1}
@@ -544,27 +585,27 @@ export default function AdminAppointmentsPage() {
         </div>
 
         {/* Detail panel only on desktop */}
-        <div className="hidden lg:block rounded-lg border border-gray-200 bg-white p-5 shadow-sm lg:sticky lg:top-6 h-fit">
-          <h2 className="text-sm font-semibold text-slate-900">
+        <div className="hidden lg:block rounded-lg border border-gray-200 bg-white p-5 shadow-sm lg:sticky lg:top-6 h-fit dark:border-slate-800 dark:bg-slate-900">
+          <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
             Appointment Details
           </h2>
 
           {!selectedId ? (
-            <p className="mt-3 text-sm text-slate-500">
+            <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">
               Select an appointment from the list to view full details.
             </p>
           ) : detailLoading ? (
-            <p className="mt-3 text-sm text-slate-500">Loading details…</p>
+            <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">Loading details…</p>
           ) : detail?.error ? (
-            <p className="mt-3 text-sm text-red-600">{detail.message}</p>
+            <p className="mt-3 text-sm text-red-600 dark:text-red-300">{detail.message}</p>
           ) : detail ? (
             <div className="mt-4 space-y-4 text-sm">
-              <div className="rounded-md border border-gray-200 p-4">
-                <p className="text-md text-slate-500">Appointment</p>
-                <p className="mt-1 font-semibold text-slate-900">
+              <div className="rounded-md border border-gray-200 p-4 dark:border-slate-800 dark:bg-slate-950/40">
+                <p className="text-md text-slate-500 dark:text-slate-400">Appointment</p>
+                <p className="mt-1 font-semibold text-slate-900 dark:text-slate-100">
                   #{detail.id} · {detail.appointment_type?.toUpperCase()}
                 </p>
-                <p className="mt-1 text-slate-600">
+                <p className="mt-1 text-slate-600 dark:text-slate-300">
                   Status:{" "}
                   <span className="font-medium">
                     {detail.status?.replaceAll("_", " ")}
@@ -572,53 +613,53 @@ export default function AdminAppointmentsPage() {
                 </p>
               </div>
 
-              <div className="rounded-md border border-gray-200 p-4">
-                <p className="text-md text-slate-500">Customer</p>
-                <p className="mt-1 font-medium text-slate-900">
+              <div className="rounded-md border border-gray-200 p-4 dark:border-slate-800 dark:bg-slate-950/40">
+                <p className="text-md text-slate-500 dark:text-slate-400">Customer</p>
+                <p className="mt-1 font-medium text-slate-900 dark:text-slate-100">
                   {detail.customer_name}
                 </p>
-                <p className="text-slate-600">{detail.customer_phone}</p>
-                <p className="text-slate-600">{detail.customer_email || "-"}</p>
-                <p className="mt-1 text-slate-600">
+                <p className="text-slate-600 dark:text-slate-300">{detail.customer_phone}</p>
+                <p className="text-slate-600 dark:text-slate-300">{detail.customer_email || "-"}</p>
+                <p className="mt-1 text-slate-600 dark:text-slate-300">
                   {detail.customer_address || "-"}
                 </p>
               </div>
 
-              <div className="rounded-md border border-gray-200 p-4">
-                <p className="text-md text-slate-500">Assigned Technician</p>
+              <div className="rounded-md border border-gray-200 p-4 dark:border-slate-800 dark:bg-slate-950/40">
+                <p className="text-md text-slate-500 dark:text-slate-400">Assigned Technician</p>
                 {detail.technician_name ? (
                   <>
-                    <p className="mt-1 font-medium text-slate-900">
+                    <p className="mt-1 font-medium text-slate-900 dark:text-slate-100">
                       {detail.technician_name}
                     </p>
-                    <p className="text-slate-600">
+                    <p className="text-slate-600 dark:text-slate-300">
                       {detail.technician_phone || "-"}
                     </p>
                   </>
                 ) : (
-                  <p className="mt-1 text-sm text-slate-500">Not assigned yet</p>
+                  <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Not assigned yet</p>
                 )}
               </div>
 
-              <div className="rounded-md border border-gray-200 p-4">
-                <p className="text-md text-slate-500">Schedule</p>
-                <p className="mt-1 font-medium text-slate-900">
+              <div className="rounded-md border border-gray-200 p-4 dark:border-slate-800 dark:bg-slate-950/40">
+                <p className="text-md text-slate-500 dark:text-slate-400">Schedule</p>
+                <p className="mt-1 font-medium text-slate-900 dark:text-slate-100">
                   {formatDateDDMMYYYY(detail.scheduled_date)}
                 </p>
-                <p className="text-slate-600">
+                <p className="text-slate-600 dark:text-slate-300">
                   {formatTime12h(detail.scheduled_time)}
                 </p>
               </div>
 
-              <div className="rounded-md border border-gray-200 p-4">
-                <p className="text-md text-slate-500">Service</p>
-                <p className="mt-1 font-medium text-slate-900">
+              <div className="rounded-md border border-gray-200 p-4 dark:border-slate-800 dark:bg-slate-950/40">
+                <p className="text-md text-slate-500 dark:text-slate-400">Service</p>
+                <p className="mt-1 font-medium text-slate-900 dark:text-slate-100">
                   {detail.category}
                 </p>
-                <p className="mt-2 text-slate-600">
+                <p className="mt-2 text-slate-600 dark:text-slate-300">
                   Issue: {detail.issue_description || "-"}
                 </p>
-                <p className="text-slate-600">
+                <p className="text-slate-600 dark:text-slate-300">
                   Requires parts:{" "}
                   <span className="font-medium">
                     {detail.requires_parts ? "Yes" : "No"}
@@ -626,21 +667,21 @@ export default function AdminAppointmentsPage() {
                 </p>
               </div>
 
-              <div className="rounded-md border border-gray-200 p-4">
-                <p className="text-md text-slate-500">Cost</p>
-                <p className="mt-2 text-slate-600">
+              <div className="rounded-md border border-gray-200 p-4 dark:border-slate-800 dark:bg-slate-950/40">
+                <p className="text-md text-slate-500 dark:text-slate-400">Cost</p>
+                <p className="mt-2 text-slate-600 dark:text-slate-300">
                   Estimated:{" "}
-                  <span className="font-semibold text-slate-900">
+                  <span className="font-semibold text-slate-900 dark:text-slate-100">
                     ₹ {detail.estimated_cost ?? "-"}
                   </span>
                 </p>
-                <p className="text-slate-600">
+                <p className="text-slate-600 dark:text-slate-300">
                   Final:{" "}
-                  <span className="font-semibold text-slate-900">
+                  <span className="font-semibold text-slate-900 dark:text-slate-100">
                     ₹ {detail.final_cost ?? "-"}
                   </span>
                 </p>
-                <p className="text-slate-600">
+                <p className="text-slate-600 dark:text-slate-300">
                   Duration:{" "}
                   <span className="font-medium">
                     {detail.estimated_duration
@@ -651,12 +692,12 @@ export default function AdminAppointmentsPage() {
               </div>
             </div>
           ) : (
-            <p className="mt-3 text-sm text-slate-500">No details loaded.</p>
+            <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">No details loaded.</p>
           )}
         </div>
       </div>
 
-      {/* ✅ Modal for mobile/tablet */}
+      {/* mobile/tablet */}
       <AppointmentDetailModal
         open={detailOpen}
         onClose={() => setDetailOpen(false)}

@@ -1,6 +1,7 @@
 import { Outlet, Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import ThemeToggle from "../components/ThemeToggle.jsx"
+import ThemeToggle from "../components/ThemeToggle.jsx";
+
 /* ---------- Reusable NavLink (DECLARED OUTSIDE) ---------- */
 function AdminNavLink({ to, children, onClick }) {
   return (
@@ -25,7 +26,7 @@ export default function AdminLayout() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen flex bg-gray-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
       {/* Sidebar */}
       <aside
         className={`fixed inset-y-0 left-0 z-40 w-64 bg-slate-900 transform transition-transform duration-200 ease-in-out
@@ -37,24 +38,35 @@ export default function AdminLayout() {
             Admin Panel
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="px-6 pb-3">
             <ThemeToggle />
-          </div> 
+          </div>
 
           <nav className="flex-1 space-y-1 px-3">
-            <AdminNavLink to="/admin/dashboard" onClick={() => setSidebarOpen(false)}>
+            <AdminNavLink
+              to="/admin/dashboard"
+              onClick={() => setSidebarOpen(false)}
+            >
               Dashboard
             </AdminNavLink>
-            <AdminNavLink to="/admin/appointments" onClick={() => setSidebarOpen(false)}>
+            <AdminNavLink
+              to="/admin/appointments"
+              onClick={() => setSidebarOpen(false)}
+            >
               Appointments
             </AdminNavLink>
-            <AdminNavLink to="/admin/customers" onClick={() => setSidebarOpen(false)}>
+            <AdminNavLink
+              to="/admin/customers"
+              onClick={() => setSidebarOpen(false)}
+            >
               Customers
             </AdminNavLink>
-            <AdminNavLink to="/admin/technicians" onClick={() => setSidebarOpen(false)}>
+            <AdminNavLink
+              to="/admin/technicians"
+              onClick={() => setSidebarOpen(false)}
+            >
               Technicians
             </AdminNavLink>
-          
 
             <div className="border-t border-slate-800 p-4">
               <button
@@ -65,9 +77,8 @@ export default function AdminLayout() {
               </button>
             </div>
           </nav>
-        </div>     
+        </div>
       </aside>
-      
 
       {/* Mobile overlay */}
       {sidebarOpen && (
@@ -80,16 +91,18 @@ export default function AdminLayout() {
       {/* Main content */}
       <div className="flex flex-1 flex-col">
         {/* Top bar (mobile) */}
-        <header className="flex items-center justify-between bg-white px-4 py-3 shadow-sm lg:hidden">
-          <span className="text-sm font-semibold text-slate-900">
+        <header className="flex items-center justify-between border-b border-gray-200 bg-white px-4 py-3 shadow-sm dark:border-slate-800 dark:bg-slate-950 lg:hidden">
+          <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">
             Admin Panel
           </span>
+
           <div className="flex items-center gap-2">
             <ThemeToggle />
-          </div>          
+          </div>
+
           <button
             onClick={() => setSidebarOpen(true)}
-            className="rounded-md p-2 text-slate-700 hover:bg-gray-100"
+            className="rounded-md p-2 text-slate-700 hover:bg-gray-100 dark:text-slate-200 dark:hover:bg-slate-800"
           >
             ☰
           </button>
