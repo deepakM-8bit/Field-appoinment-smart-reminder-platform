@@ -226,14 +226,14 @@ export default function TechnicianDashboard() {
                 <button
                   key={a.id}
                   onClick={() => navigate(`/technician/appointments/${a.id}`)}
-                  className="w-full text-left rounded-lg border border-gray-200 bg-white p-4 shadow-sm hover:bg-slate-100 transition"
+                  className="w-full text-left rounded-lg border border-gray-200 bg-white p-4 shadow-sm hover:bg-slate-50 transition"
                 >
-                  <div className="flex items-start justify-between gap-3 ">
+                  <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <p className="truncate text-sm font-semibold text-slate-900">
                         {a.customer_name}
                       </p>
-                      <p className="mt-1 text-xs font-semibold text-slate-600">
+                      <p className="mt-1 text-xs text-slate-500">
                         #{a.id} • {a.category}
                       </p>
                     </div>

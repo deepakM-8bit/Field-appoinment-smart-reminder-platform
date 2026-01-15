@@ -51,18 +51,20 @@ export default function AdminLayout() {
             <AdminNavLink to="/admin/technicians" onClick={() => setSidebarOpen(false)}>
               Technicians
             </AdminNavLink>
-          </nav>
+          
 
-          <div className="border-t border-slate-800 p-4">
-            <button
-              onClick={logout}
-              className="w-full rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
-            >
-              Logout
-            </button>
-          </div>
-        </div>
+            <div className="border-t border-slate-800 p-4">
+              <button
+                onClick={logout}
+                className="w-full rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
+              >
+                Logout
+              </button>
+            </div>
+          </nav>
+        </div>     
       </aside>
+      
 
       {/* Mobile overlay */}
       {sidebarOpen && (

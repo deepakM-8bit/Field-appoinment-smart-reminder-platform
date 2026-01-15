@@ -7,6 +7,7 @@ const FILTERS = [
   { key: "repair", label: "Repair" },
 ];
 
+/* ---------------- Helpers ---------------- */
 function formatDateDDMMYYYY(dateStr) {
   if (!dateStr) return "-";
   const d = new Date(dateStr);
@@ -26,6 +27,192 @@ function formatTime12h(timeStr) {
   return `${hour}:${String(m).padStart(2, "0")} ${period}`;
 }
 
+const prettify = (s) => String(s || "").replaceAll("_", " ");
+
+function StatusBadge({ status }) {
+  const base =
+    "inline-flex items-center rounded border px-2 py-0.5 text-xs font-medium";
+  switch (status) {
+    case "repair_completed":
+      return (
+        <span className={`${base} bg-green-50 border-green-200 text-green-800`}>
+          {prettify(status)}
+        </span>
+      );
+    case "repair_in_progress":
+    case "diagnosis_in_progress":
+      return (
+        <span className={`${base} bg-amber-50 border-amber-200 text-amber-800`}>
+          {prettify(status)}
+        </span>
+      );
+    case "diagnosis_completed_waiting_approval":
+      return (
+        <span
+          className={`${base} bg-indigo-50 border-indigo-200 text-indigo-800`}
+        >
+          Waiting approval
+        </span>
+      );
+    case "cancelled":
+      return (
+        <span className={`${base} bg-red-50 border-red-200 text-red-800`}>
+          Cancelled
+        </span>
+      );
+    default:
+      return (
+        <span className={`${base} bg-slate-50 border-slate-200 text-slate-700`}>
+          {prettify(status)}
+        </span>
+      );
+  }
+}
+
+function TypeBadge({ type }) {
+  const base =
+    "inline-flex items-center rounded px-2 py-0.5 text-xs font-medium";
+  if (type === "repair") {
+    return <span className={`${base} bg-blue-50 text-blue-700`}>Repair</span>;
+  }
+  return (
+    <span className={`${base} bg-slate-100 text-slate-700`}>Diagnosis</span>
+  );
+}
+
+function AppointmentDetailModal({ open, onClose, loading, detail }) {
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+      <div className="w-full max-w-lg rounded-xl bg-white shadow-2xl overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center justify-between border-b px-5 py-4">
+          <h2 className="text-sm font-semibold text-slate-900">
+            Appointment Details
+          </h2>
+          <button
+            onClick={onClose}
+            className="rounded-md p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+          >
+            ✕
+          </button>
+        </div>
+
+        {/* Body */}
+        <div className="max-h-[75vh] overflow-auto px-5 py-4">
+          {!detail ? (
+            <p className="text-sm text-slate-500">No details loaded.</p>
+          ) : loading ? (
+            <p className="text-sm text-slate-500">Loading details…</p>
+          ) : detail?.error ? (
+            <p className="text-sm text-red-600">{detail.message}</p>
+          ) : (
+            <div className="space-y-3 text-sm">
+              {/* Appointment */}
+              <div className="rounded-md border border-gray-200 p-4">
+                <p className="text-xs text-slate-500">Appointment</p>
+                <p className="mt-1 font-semibold text-slate-900">
+                  #{detail.id} · {detail.appointment_type?.toUpperCase()}
+                </p>
+                <p className="mt-1 text-slate-600">
+                  Status:{" "}
+                  <span className="font-medium">
+                    {detail.status?.replaceAll("_", " ")}
+                  </span>
+                </p>
+              </div>
+
+              {/* Customer */}
+              <div className="rounded-md border border-gray-200 p-4">
+                <p className="text-xs text-slate-500">Customer</p>
+                <p className="mt-1 font-medium text-slate-900">
+                  {detail.customer_name}
+                </p>
+                <p className="text-slate-600">{detail.customer_phone}</p>
+                <p className="text-slate-600">{detail.customer_email || "-"}</p>
+                <p className="mt-1 text-slate-600">
+                  {detail.customer_address || "-"}
+                </p>
+              </div>
+
+              {/* Technician */}
+              <div className="rounded-md border border-gray-200 p-4">
+                <p className="text-xs text-slate-500">Assigned Technician</p>
+                {detail.technician_name ? (
+                  <>
+                    <p className="mt-1 font-medium text-slate-900">
+                      {detail.technician_name}
+                    </p>
+                    <p className="text-slate-600">
+                      {detail.technician_phone || "-"}
+                    </p>
+                  </>
+                ) : (
+                  <p className="mt-1 text-slate-500">Not assigned yet</p>
+                )}
+              </div>
+
+              {/* Service */}
+              <div className="rounded-md border border-gray-200 p-4">
+                <p className="text-xs text-slate-500">Service</p>
+                <p className="mt-1 font-medium text-slate-900">
+                  {detail.category}
+                </p>
+                <p className="mt-2 text-slate-600">
+                  Issue: {detail.issue_description || "-"}
+                </p>
+                <p className="text-slate-600">
+                  Requires parts:{" "}
+                  <span className="font-medium">
+                    {detail.requires_parts ? "Yes" : "No"}
+                  </span>
+                </p>
+              </div>
+
+              {/* Cost */}
+              <div className="rounded-md border border-gray-200 p-4">
+                <p className="text-xs text-slate-500">Cost</p>
+                <p className="mt-2 text-slate-600">
+                  Estimated:{" "}
+                  <span className="font-semibold text-slate-900">
+                    ₹ {detail.estimated_cost ?? "-"}
+                  </span>
+                </p>
+                <p className="text-slate-600">
+                  Final:{" "}
+                  <span className="font-semibold text-slate-900">
+                    ₹ {detail.final_cost ?? "-"}
+                  </span>
+                </p>
+                <p className="text-slate-600">
+                  Duration:{" "}
+                  <span className="font-medium">
+                    {detail.estimated_duration
+                      ? `${detail.estimated_duration} mins`
+                      : "-"}
+                  </span>
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="border-t px-5 py-4">
+          <button
+            onClick={onClose}
+            className="w-full rounded-md bg-slate-900 py-2 text-sm font-medium text-white hover:bg-slate-800"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- Component ---------------- */
 export default function AdminAppointmentsPage() {
   const [filter, setFilter] = useState("completed");
   const [appointments, setAppointments] = useState([]);
@@ -34,10 +221,13 @@ export default function AdminAppointmentsPage() {
   const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // detail panel
+  // detail
   const [selectedId, setSelectedId] = useState(null);
   const [detail, setDetail] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
+
+  // ✅ separate modal state
+  const [detailOpen, setDetailOpen] = useState(false);
 
   const fetchAppointments = useCallback(async () => {
     setLoading(true);
@@ -45,7 +235,6 @@ export default function AdminAppointmentsPage() {
       const res = await api.get("/api/appointments-list/admin-list", {
         params: { filter, page, phone },
       });
-
       setAppointments(res.data.data);
       setTotalPages(res.data.totalPages);
     } catch (err) {
@@ -67,26 +256,26 @@ export default function AdminAppointmentsPage() {
 
     try {
       await api.post(`/api/appointments-list/${id}/cancel`);
-      // if cancelled appointment is selected, refresh detail
       fetchAppointments();
+
       if (selectedId === id) {
         setDetail(null);
         setSelectedId(null);
+        setDetailOpen(false);
       }
     } catch (err) {
       alert("Failed to cancel appointment");
-      console.log("failed to cancel the appointment error:", err.message);
+      console.log("failed to cancel appointment error:", err.message);
     }
   };
 
   const fetchDetail = useCallback(async (id) => {
     if (!id) return;
+
     setDetailLoading(true);
     setDetail(null);
 
     try {
-      // ✅ Recommended admin detail endpoint
-      // If your backend uses another route, update only this line.
       const res = await api.get(`/api/appointments-list/admin/${id}`);
       setDetail(res.data);
     } catch (err) {
@@ -101,9 +290,15 @@ export default function AdminAppointmentsPage() {
     }
   }, []);
 
-  const onRowClick = (appt) => {
+  // ✅ this is the ONLY click handler — used everywhere
+  const onSelect = (appt) => {
     setSelectedId(appt.id);
     fetchDetail(appt.id);
+
+    // open modal only on tablet/mobile
+    if (!window.matchMedia("(min-width: 1024px)").matches) {
+      setDetailOpen(true);
+    }
   };
 
   return (
@@ -128,6 +323,7 @@ export default function AdminAppointmentsPage() {
                   setPage(1);
                   setSelectedId(null);
                   setDetail(null);
+                  setDetailOpen(false);
                 }}
                 className={`rounded-md px-4 py-2 text-sm font-medium ${
                   filter === f.key
@@ -140,14 +336,14 @@ export default function AdminAppointmentsPage() {
             ))}
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-2 sm:flex-row">
             <input
               type="text"
               placeholder="Search by phone"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && fetchAppointments()}
-              className="w-full max-w-xs rounded-md border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
+              className="w-full sm:w-72 rounded-md border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
             />
             <button
               onClick={() => {
@@ -171,11 +367,86 @@ export default function AdminAppointmentsPage() {
               Appointment List
             </h2>
             <p className="mt-1 text-xs text-slate-500">
-              Click a row to view full details
+              Click an item to view full details
             </p>
           </div>
 
-          <div className="overflow-x-auto">
+          {/* Mobile cards */}
+          <div className="p-4 space-y-3 lg:hidden">
+            {loading ? (
+              <p className="py-10 text-center text-slate-500">
+                Loading appointments...
+              </p>
+            ) : appointments.length === 0 ? (
+              <p className="py-10 text-center text-slate-500">
+                No appointments found
+              </p>
+            ) : (
+              appointments.map((a) => {
+                const isSelected = selectedId === a.id;
+
+                return (
+                  <button
+                    key={a.id}
+                    onClick={() => onSelect(a)}
+                    className={`w-full text-left rounded-lg border p-4 shadow-sm transition ${
+                      isSelected
+                        ? "border-blue-300 bg-blue-50"
+                        : "border-gray-200 bg-white hover:bg-slate-50"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-slate-900">
+                          {a.customer_name}
+                        </p>
+                        <p className="mt-0.5 text-xs text-slate-500">
+                          {a.customer_phone}
+                        </p>
+                      </div>
+
+                      <div className="flex flex-col items-end gap-1">
+                        <TypeBadge type={a.appointment_type} />
+                        <StatusBadge status={a.status} />
+                      </div>
+                    </div>
+
+                    <div className="mt-3 flex items-center justify-between gap-3">
+                      <div className="text-xs text-slate-600">
+                        <p className="font-medium text-slate-900">
+                          {formatDateDDMMYYYY(a.scheduled_date)}
+                        </p>
+                        <p className="text-slate-500">
+                          {formatTime12h(a.scheduled_time)}
+                        </p>
+                      </div>
+
+                      <p className="text-xs text-slate-500 font-medium">
+                        #{a.id}
+                      </p>
+                    </div>
+
+                    {a.status !== "repair_completed" && a.status !== "cancelled" && (
+                      <div className="mt-4 flex justify-end">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleCancel(a.id);
+                          }}
+                          className="rounded-md bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-100"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    )}
+                  </button>
+                );
+              })
+            )}
+          </div>
+
+          {/* Desktop table */}
+          <div className="hidden lg:block overflow-x-auto">
             {loading ? (
               <p className="py-10 text-center text-slate-500">
                 Loading appointments...
@@ -207,7 +478,7 @@ export default function AdminAppointmentsPage() {
                       return (
                         <tr
                           key={a.id}
-                          onClick={() => onRowClick(a)}
+                          onClick={() => onSelect(a)}
                           className={`cursor-pointer hover:bg-slate-100 ${
                             isSelected ? "bg-blue-50" : ""
                           }`}
@@ -218,11 +489,8 @@ export default function AdminAppointmentsPage() {
                           <td className="py-4">{a.customer_name}</td>
                           <td className="py-4">{a.customer_phone}</td>
                           <td className="py-4 capitalize">{a.appointment_type}</td>
-                          <td className="py-4">
-                            {a.status?.replaceAll("_", " ")}
-                          </td>
+                          <td className="py-4">{a.status?.replaceAll("_", " ")}</td>
 
-                          {/* ✅ Schedule formatting */}
                           <td className="py-4">
                             <div className="flex flex-col leading-4">
                               <span className="font-medium text-slate-900">
@@ -235,17 +503,18 @@ export default function AdminAppointmentsPage() {
                           </td>
 
                           <td className="px-5 py-4 text-right">
-                            {a.status !== "repair_completed" && (
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation(); // don't open detail
-                                  handleCancel(a.id);
-                                }}
-                                className="text-sm font-medium text-red-600 hover:underline"
-                              >
-                                Cancel
-                              </button>
-                            )}
+                            {a.status !== "repair_completed" &&
+                              a.status !== "cancelled" && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleCancel(a.id);
+                                  }}
+                                  className="text-sm font-medium text-red-600 hover:underline"
+                                >
+                                  Cancel
+                                </button>
+                              )}
                           </td>
                         </tr>
                       );
@@ -274,8 +543,8 @@ export default function AdminAppointmentsPage() {
           </div>
         </div>
 
-        {/* Detail panel */}
-        <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm lg:sticky lg:top-6 h-fit">
+        {/* Detail panel only on desktop */}
+        <div className="hidden lg:block rounded-lg border border-gray-200 bg-white p-5 shadow-sm lg:sticky lg:top-6 h-fit">
           <h2 className="text-sm font-semibold text-slate-900">
             Appointment Details
           </h2>
@@ -285,13 +554,9 @@ export default function AdminAppointmentsPage() {
               Select an appointment from the list to view full details.
             </p>
           ) : detailLoading ? (
-            <p className="mt-3 text-sm text-slate-500">
-              Loading details…
-            </p>
+            <p className="mt-3 text-sm text-slate-500">Loading details…</p>
           ) : detail?.error ? (
-            <p className="mt-3 text-sm text-red-600">
-              {detail.message}
-            </p>
+            <p className="mt-3 text-sm text-red-600">{detail.message}</p>
           ) : detail ? (
             <div className="mt-4 space-y-4 text-sm">
               <div className="rounded-md border border-gray-200 p-4">
@@ -300,7 +565,10 @@ export default function AdminAppointmentsPage() {
                   #{detail.id} · {detail.appointment_type?.toUpperCase()}
                 </p>
                 <p className="mt-1 text-slate-600">
-                  Status: <span className="font-medium">{detail.status?.replaceAll("_", " ")}</span>
+                  Status:{" "}
+                  <span className="font-medium">
+                    {detail.status?.replaceAll("_", " ")}
+                  </span>
                 </p>
               </div>
 
@@ -311,34 +579,35 @@ export default function AdminAppointmentsPage() {
                 </p>
                 <p className="text-slate-600">{detail.customer_phone}</p>
                 <p className="text-slate-600">{detail.customer_email || "-"}</p>
-                <p className="mt-1 text-slate-600">{detail.customer_address || "-"}</p>
+                <p className="mt-1 text-slate-600">
+                  {detail.customer_address || "-"}
+                </p>
               </div>
 
-              {/* Technician */}
               <div className="rounded-md border border-gray-200 p-4">
                 <p className="text-md text-slate-500">Assigned Technician</p>
-
                 {detail.technician_name ? (
                   <>
                     <p className="mt-1 font-medium text-slate-900">
                       {detail.technician_name}
                     </p>
-                    <p className="text-slate-600">{detail.technician_phone || "-"}</p>
+                    <p className="text-slate-600">
+                      {detail.technician_phone || "-"}
+                    </p>
                   </>
                 ) : (
-                  <p className="mt-1 text-sm text-slate-500">
-                    Not assigned yet
-                  </p>
+                  <p className="mt-1 text-sm text-slate-500">Not assigned yet</p>
                 )}
               </div>
-
 
               <div className="rounded-md border border-gray-200 p-4">
                 <p className="text-md text-slate-500">Schedule</p>
                 <p className="mt-1 font-medium text-slate-900">
                   {formatDateDDMMYYYY(detail.scheduled_date)}
                 </p>
-                <p className="text-slate-600">{formatTime12h(detail.scheduled_time)}</p>
+                <p className="text-slate-600">
+                  {formatTime12h(detail.scheduled_time)}
+                </p>
               </div>
 
               <div className="rounded-md border border-gray-200 p-4">
@@ -357,7 +626,6 @@ export default function AdminAppointmentsPage() {
                 </p>
               </div>
 
-              {/* Costs */}
               <div className="rounded-md border border-gray-200 p-4">
                 <p className="text-md text-slate-500">Cost</p>
                 <p className="mt-2 text-slate-600">
@@ -375,18 +643,26 @@ export default function AdminAppointmentsPage() {
                 <p className="text-slate-600">
                   Duration:{" "}
                   <span className="font-medium">
-                    {detail.estimated_duration ? `${detail.estimated_duration} mins` : "-"}
+                    {detail.estimated_duration
+                      ? `${detail.estimated_duration} mins`
+                      : "-"}
                   </span>
                 </p>
               </div>
             </div>
           ) : (
-            <p className="mt-3 text-sm text-slate-500">
-              No details loaded.
-            </p>
+            <p className="mt-3 text-sm text-slate-500">No details loaded.</p>
           )}
         </div>
       </div>
+
+      {/* ✅ Modal for mobile/tablet */}
+      <AppointmentDetailModal
+        open={detailOpen}
+        onClose={() => setDetailOpen(false)}
+        loading={detailLoading}
+        detail={detail}
+      />
     </div>
   );
 }
