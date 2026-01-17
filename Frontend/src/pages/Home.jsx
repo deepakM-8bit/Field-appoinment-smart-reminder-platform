@@ -1,25 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import ThemeToggle from "../components/ThemeToggle.jsx";
+import Navbar from "../components/Navbar.jsx";
 
 function Container({ children }) {
   return (
     <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
       {children}
     </div>
-  );
-}
-
-function NavLink({ to, children, onClick }) {
-  return (
-    <Link
-      to={to}
-      onClick={onClick}
-      className="rounded-md px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900
-                 dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-white"
-    >
-      {children}
-    </Link>
   );
 }
 
@@ -54,7 +40,7 @@ function FeatureCard({ title, desc, icon }) {
   );
 }
 
-function Step({ index, title, desc, status }) {
+function Step({ index, title, desc }) {
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm
                     dark:border-slate-800 dark:bg-slate-950">
@@ -65,18 +51,9 @@ function Step({ index, title, desc, status }) {
         </div>
 
         <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
-            <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-              {title}
-            </p>
-            {status && (
-              <span className="rounded bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-700
-                               dark:bg-slate-800 dark:text-slate-200">
-                {status}
-              </span>
-            )}
-          </div>
-
+          <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+            {title}
+          </p>
           <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
             {desc}
           </p>
@@ -88,122 +65,11 @@ function Step({ index, title, desc, status }) {
 
 export default function Home() {
   const navigate = useNavigate();
-
-  const [mobileOpen, setMobileOpen] = useState(false);
-
-  // close mobile menu on route change feeling (basic)
-  useEffect(() => {
-    const close = () => setMobileOpen(false);
-    window.addEventListener("resize", close);
-    return () => window.removeEventListener("resize", close);
-  }, []);
-
-  const year = useMemo(() => new Date().getFullYear(), []);
+  const year = new Date().getFullYear();
 
   return (
     <div className="min-h-screen bg-white text-slate-900 dark:bg-slate-950 dark:text-slate-100">
-      {/* ---------------- Navbar ---------------- */}
-      <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/80 backdrop-blur
-                         dark:border-slate-800 dark:bg-slate-950/70">
-        <Container>
-          <div className="flex h-16 items-center justify-between">
-            {/* Brand */}
-            <Link to="/" className="flex items-center gap-2">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 text-white font-bold">
-                FA
-              </div>
-              <div className="leading-4">
-                <p className="text-sm font-bold text-slate-900 dark:text-white">
-                  Field Appointment
-                </p>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                  Admin + Technician Workflow
-                </p>
-              </div>
-            </Link>
-
-            {/* Desktop nav */}
-            <nav className="hidden items-center gap-1 md:flex">
-              <NavLink to="/#features">Features</NavLink>
-              <NavLink to="/#how">How it works</NavLink>
-              <NavLink to="/#security">Security</NavLink>
-              <NavLink to="/#footer">Contact</NavLink>
-            </nav>
-
-            {/* Actions */}
-            <div className="hidden items-center gap-2 md:flex">
-              <ThemeToggle />
-
-              <button
-                onClick={() => navigate("/login")}
-                className="rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800
-                           dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
-              >
-                Admin Login
-              </button>
-
-              <button
-                onClick={() => navigate("/tech-login")}
-                className="rounded-md border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50
-                           dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:hover:bg-slate-900"
-              >
-                Technician Login
-              </button>
-            </div>
-
-            {/* Mobile button */}
-            <div className="flex items-center gap-2 md:hidden">
-              <ThemeToggle />
-              <button
-                onClick={() => setMobileOpen((s) => !s)}
-                className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50
-                           dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:hover:bg-slate-900"
-              >
-                {mobileOpen ? "✕" : "☰"}
-              </button>
-            </div>
-          </div>
-
-          {/* Mobile menu */}
-          {mobileOpen && (
-            <div className="md:hidden pb-4">
-              <div className="mt-2 space-y-1 rounded-xl border border-slate-200 bg-white p-2
-                              dark:border-slate-800 dark:bg-slate-950">
-                <NavLink to="/#features" onClick={() => setMobileOpen(false)}>
-                  Features
-                </NavLink>
-                <NavLink to="/#how" onClick={() => setMobileOpen(false)}>
-                  How it works
-                </NavLink>
-                <NavLink to="/#security" onClick={() => setMobileOpen(false)}>
-                  Security
-                </NavLink>
-                <NavLink to="/#footer" onClick={() => setMobileOpen(false)}>
-                  Contact
-                </NavLink>
-
-                <div className="mt-2 grid grid-cols-1 gap-2 px-2 pb-2">
-                  <button
-                    onClick={() => navigate("/login")}
-                    className="rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800
-                               dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
-                  >
-                    Admin Login
-                  </button>
-
-                  <button
-                    onClick={() => navigate("/tech-login")}
-                    className="rounded-md border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50
-                               dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:hover:bg-slate-900"
-                  >
-                    Technician Login
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-        </Container>
-      </header>
+      <Navbar variant="full" />
 
       {/* ---------------- Hero ---------------- */}
       <section className="relative overflow-hidden">
@@ -216,24 +82,23 @@ export default function Home() {
               {/* Text */}
               <div className="max-w-xl">
                 <div className="flex flex-wrap items-center gap-2">
-                  <Pill>Auto Technician Assignment</Pill>
-                  <Pill>OTP-secured workflow</Pill>
-                  <Pill>Reminder Cron System</Pill>
+                  <Pill>Smart Technician Allocation</Pill>
+                  <Pill>Customer Verified Service</Pill>
+                  <Pill>Automated Reminders</Pill>
                 </div>
 
                 <h1 className="mt-5 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-5xl dark:text-white">
-                  Field Appointment System
+                  Run field service operations
                   <span className="block text-blue-600 dark:text-blue-400">
-                    Diagnosis → Repair → Payment Automation
+                    faster, safer, and more organized
                   </span>
                 </h1>
 
                 <p className="mt-4 text-base text-slate-600 sm:text-lg dark:text-slate-300">
-                  A complete appointment workflow platform for service businesses:
-                  admin schedules diagnosis, system auto-assigns technicians based on
-                  category + daily capacity, technician verifies OTP to start tasks,
-                  customer approvals convert diagnosis into repair, and reminders are
-                  sent automatically.
+                  Field Appointment System helps service businesses manage
+                  diagnosis and repair visits end-to-end — from scheduling to
+                  technician assignment, customer confirmation, reminders, and
+                  payment completion.
                 </p>
 
                 <div className="mt-6 flex flex-col gap-3 sm:flex-row">
@@ -241,7 +106,7 @@ export default function Home() {
                     onClick={() => navigate("/login")}
                     className="rounded-lg bg-blue-600 px-6 py-3 text-sm font-semibold text-white hover:bg-blue-700"
                   >
-                    Launch Admin Panel
+                    Open Admin Panel
                   </button>
 
                   <button
@@ -254,7 +119,7 @@ export default function Home() {
                 </div>
 
                 <p className="mt-3 text-xs text-slate-500 dark:text-slate-400">
-                  Built with role-based auth, OTP checkpoints & audit logs.
+                  Designed for real businesses: reduce missed appointments, increase trust, and scale operations.
                 </p>
               </div>
 
@@ -263,51 +128,38 @@ export default function Home() {
                 <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm
                                 dark:border-slate-800 dark:bg-slate-950">
                   <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                    REAL WORKFLOW (FROM BACKEND)
+                    BUSINESS WORKFLOW OVERVIEW
                   </p>
 
                   <div className="mt-4 space-y-3">
                     <div className="rounded-lg border border-slate-200 bg-slate-50 p-4
                                     dark:border-slate-800 dark:bg-slate-900/40">
                       <p className="text-sm font-semibold text-slate-900 dark:text-white">
-                        1) Admin schedules Diagnosis
+                        Appointment scheduling
                       </p>
                       <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
-                        Creates appointment → auto-assign technician if available.
+                        Admin creates a diagnosis visit, and the system immediately tries to allocate the best technician.
                       </p>
-                      <div className="mt-2 flex flex-wrap gap-2">
-                        <Pill>diagnosis_scheduled</Pill>
-                        <Pill>waiting_for_assignment</Pill>
-                      </div>
                     </div>
 
                     <div className="rounded-lg border border-slate-200 bg-slate-50 p-4
                                     dark:border-slate-800 dark:bg-slate-900/40">
                       <p className="text-sm font-semibold text-slate-900 dark:text-white">
-                        2) Technician verifies OTP
+                        Customer verified service
                       </p>
                       <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
-                        OTP required to start diagnosis / repair / payment.
+                        Service starts only after customer confirmation using OTP — boosting trust and preventing disputes.
                       </p>
-                      <div className="mt-2 flex flex-wrap gap-2">
-                        <Pill>diagnosis_in_progress</Pill>
-                        <Pill>repair_in_progress</Pill>
-                        <Pill>repair_completed</Pill>
-                      </div>
                     </div>
 
                     <div className="rounded-lg border border-slate-200 bg-slate-50 p-4
                                     dark:border-slate-800 dark:bg-slate-900/40">
                       <p className="text-sm font-semibold text-slate-900 dark:text-white">
-                        3) Admin approves Repair
+                        Quote approval → repair workflow
                       </p>
                       <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
-                        Diagnosis converts into repair appointment with schedule.
+                        After diagnosis, admin approves repair, schedules it, and reminders are automatically sent to both sides.
                       </p>
-                      <div className="mt-2 flex flex-wrap gap-2">
-                        <Pill>diagnosis_completed_waiting_approval</Pill>
-                        <Pill>repair_scheduled</Pill>
-                      </div>
                     </div>
                   </div>
 
@@ -315,26 +167,26 @@ export default function Home() {
                     <div className="rounded-lg border border-slate-200 bg-white p-4
                                     dark:border-slate-800 dark:bg-slate-950">
                       <p className="text-xs text-slate-500 dark:text-slate-400">
-                        Reminders
+                        Reminder automation
                       </p>
                       <p className="mt-1 text-sm font-semibold text-slate-900 dark:text-white">
-                        Cron every minute
+                        Zero missed visits
                       </p>
                       <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
-                        technician_reminder / customer_reminder
+                        Automatic email reminders to technician + customer.
                       </p>
                     </div>
 
                     <div className="rounded-lg border border-slate-200 bg-white p-4
                                     dark:border-slate-800 dark:bg-slate-950">
                       <p className="text-xs text-slate-500 dark:text-slate-400">
-                        Alerts
+                        Operational alerts
                       </p>
                       <p className="mt-1 text-sm font-semibold text-slate-900 dark:text-white">
-                        notifyAdmin()
+                        Admin stays informed
                       </p>
                       <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
-                        OTP abuse / Reminder failures
+                        Alerts for assignment issues & failures.
                       </p>
                     </div>
                   </div>
@@ -351,153 +203,153 @@ export default function Home() {
         <Container>
           <div className="max-w-2xl">
             <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
-              Why this platform is powerful
+              Built for service businesses
             </h2>
             <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-              Everything here is based on your actual backend: cron reminders,
-              OTP checkpoints, auto technician assignment, cancellation workflow,
-              and audit logs.
+              Everything is designed to simplify scheduling, improve technician productivity,
+              and create strong customer trust — without manual follow-ups.
             </p>
           </div>
 
           <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <FeatureCard
               icon="🧠"
-              title="Smart Technician Auto-Assign"
-              desc="Auto selects technician by category + remaining daily capacity (work hours - workload). If no match → waiting_for_assignment + admin email alert."
+              title="Smart technician allocation"
+              desc="Appointments are assigned based on technician expertise category and daily available capacity — reducing overload and delays."
             />
             <FeatureCard
               icon="🔐"
-              title="OTP-secured diagnosis/repair/payment"
-              desc="Technician must verify OTP to start diagnosis, start repair, and confirm payment completion. Prevents fake completion."
+              title="Customer confirmed service"
+              desc="OTP confirmation is required at important stages, making the service process transparent and dispute-free."
             />
             <FeatureCard
               icon="⏱️"
-              title="Automated reminders (Cron)"
-              desc="Every minute cron checks reminders table → sends emails to technician/customer. Retries up to 5 times with notifyAdmin on failures."
+              title="Automated reminders"
+              desc="Technicians and customers receive email reminders automatically — improving attendance and reducing cancellations."
             />
             <FeatureCard
               icon="📋"
-              title="Admin dashboard + appointment control"
-              desc="Admin can view diagnosis/repair/completed filters, paginate, search by phone, open detail modal, and cancel active appointments."
+              title="Admin control center"
+              desc="Manage customers, technicians, appointments, approvals, and cancellations from one panel."
             />
             <FeatureCard
               icon="👥"
-              title="Customer CRM + duplicate prevention"
-              desc="Customer records stored per admin. Adding customer checks phone number first to prevent duplicates."
+              title="Customer management"
+              desc="Maintain customer records with search, contact details, and address — no duplicates, no confusion."
             />
             <FeatureCard
               icon="🧾"
-              title="Logs + accountability"
-              desc="Every major event writes logs (OTP sent/verified, diagnosis complete, repair created, cancellation). Fully auditable workflow."
+              title="Clear accountability"
+              desc="Every major activity is tracked so admins can review what happened at any time."
             />
           </div>
         </Container>
       </section>
 
       {/* ---------------- How it works ---------------- */}
-      <section id="how" className="py-14 sm:py-20 border-t border-slate-200 dark:border-slate-800">
+      <section
+        id="how"
+        className="py-14 sm:py-20 border-t border-slate-200 dark:border-slate-800"
+      >
         <Container>
           <div className="max-w-2xl">
             <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
-              How it works (real backend flow)
+              How it works
             </h2>
             <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-              These steps align directly with your controller logic and status pipeline.
+              A simple step-by-step flow — built for real-life service operations.
             </p>
           </div>
 
           <div className="mt-8 grid grid-cols-1 gap-4 lg:grid-cols-2">
             <Step
               index="1"
-              title="Admin schedules diagnosis"
-              status="POST /api/appointments/diagnosis"
-              desc="Creates or reuses customer record. Auto-assign technician if category matches and capacity fits, else triggers notifyAdmin and keeps it unassigned."
+              title="Schedule a diagnosis visit"
+              desc="Admin schedules the visit and the system tries to allocate the most suitable technician instantly."
             />
             <Step
               index="2"
-              title="Auto assignment or manual fallback"
-              status="waiting_for_assignment → assign-technician"
-              desc="If no technician fits workload/capacity, appointment remains waiting_for_assignment. Admin assigns technician manually from dashboard."
+              title="Technician assignment (automatic or manual)"
+              desc="If someone is available, assignment happens automatically. Otherwise, admin can assign manually."
             />
             <Step
               index="3"
-              title="Technician OTP to start diagnosis"
-              status="diagnosis_scheduled → diagnosis_in_progress"
-              desc="OTP is emailed to customer. Technician requests + verifies OTP to start the job. OTP abuse detection notifies admin."
+              title="Technician starts service with customer confirmation"
+              desc="Technician verifies OTP with the customer before starting, ensuring trust and transparency."
             />
             <Step
               index="4"
-              title="Technician completes diagnosis (Quote)"
-              status="diagnosis_in_progress → diagnosis_completed_waiting_approval"
-              desc="Technician submits issue description, duration, estimated cost, parts requirement, and suggested repair schedule. Quote is emailed to customer."
+              title="Diagnosis completed and quote shared"
+              desc="Technician submits findings, estimated duration, cost, and recommended repair schedule."
             />
             <Step
               index="5"
-              title="Admin approves repair"
-              status="POST /api/appointments/:id/repair-approval"
-              desc="Diagnosis appointment converts into a repair appointment. Technician is retained if capacity allows, else unassigned with admin notification."
+              title="Repair approval"
+              desc="Admin approves the quote and converts the workflow into a repair appointment."
             />
             <Step
               index="6"
-              title="Repair starts + payment OTP"
-              status="repair_scheduled → repair_in_progress → repair_completed"
-              desc="Repair requires OTP to start. Payment requires OTP verification from customer to mark repair completed."
+              title="Repair completion and payment confirmation"
+              desc="Repair is completed with secure payment confirmation, and the appointment is marked closed."
             />
           </div>
         </Container>
       </section>
 
       {/* ---------------- Security ---------------- */}
-      <section id="security" className="py-14 sm:py-20 border-t border-slate-200 dark:border-slate-800">
+      <section
+        id="security"
+        className="py-14 sm:py-20 border-t border-slate-200 dark:border-slate-800"
+      >
         <Container>
           <div className="grid grid-cols-1 gap-10 lg:grid-cols-2 lg:items-center">
             <div>
               <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
-                Security + Reliability built-in
+                Trust, security & reliability
               </h2>
               <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-                Your system isn't just appointments — it’s a secured workflow engine.
+                This platform protects both business owners and customers through secure verification
+                and strong operational reliability.
               </p>
 
               <div className="mt-6 space-y-3">
                 <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-950">
                   <p className="text-sm font-semibold text-slate-900 dark:text-white">
-                    Anti-abuse OTP system
+                    OTP-based verification
                   </p>
                   <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
-                    Max 3 OTP requests in 5 mins → notifyAdmin triggers. OTP expires automatically.
+                    OTP ensures that diagnosis, repair start, and payments are confirmed by the customer.
                   </p>
                 </div>
 
                 <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-950">
                   <p className="text-sm font-semibold text-slate-900 dark:text-white">
-                    Reminder delivery retry system
+                    Reminder reliability
                   </p>
                   <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
-                    Cron retries up to 5 attempts. After that admin is emailed with action required.
+                    Reminders are retried automatically to avoid missed communications.
                   </p>
                 </div>
 
                 <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-950">
                   <p className="text-sm font-semibold text-slate-900 dark:text-white">
-                    Password reset via OTP
+                    Secure password recovery
                   </p>
                   <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
-                    Admin + technician can reset password using secure OTP verification and short-lived JWT reset token.
+                    Password resets happen only through OTP verification so accounts stay protected.
                   </p>
                 </div>
               </div>
             </div>
 
-            {/* CTA box */}
+            {/* CTA */}
             <div className="rounded-2xl border border-slate-200 bg-gradient-to-b from-blue-50 to-white p-6 shadow-sm
                             dark:border-slate-800 dark:from-blue-950/40 dark:to-slate-950">
               <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-                Start using the workflow
+                Get started
               </h3>
               <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-                Use admin panel to schedule diagnosis and manage technicians. Use technician portal to complete OTP-secured tasks.
+                Admins manage operations. Technicians complete service tasks securely. Customers stay informed.
               </p>
 
               <div className="mt-5 flex flex-col gap-3 sm:flex-row">
@@ -516,10 +368,6 @@ export default function Home() {
                   Technician Login
                 </Link>
               </div>
-
-              <p className="mt-4 text-xs text-slate-500 dark:text-slate-400">
-                Everything uses real-time statuses + audit logs.
-              </p>
             </div>
           </div>
         </Container>
@@ -537,23 +385,21 @@ export default function Home() {
                 Field Appointment System
               </p>
               <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
-                Appointment automation for service businesses — diagnosis → repair → payment.
+                End-to-end appointment management for diagnosis and repair services.
               </p>
             </div>
 
             <div className="flex flex-wrap gap-2">
-              <Pill>OTP Workflows</Pill>
-              <Pill>Auto Assign</Pill>
-              <Pill>Reminder Cron</Pill>
-              <Pill>Audit Logs</Pill>
+              <Pill>Smart Scheduling</Pill>
+              <Pill>OTP Trust</Pill>
+              <Pill>Auto Reminders</Pill>
+              <Pill>Admin Control</Pill>
             </div>
           </div>
 
           <div className="mt-8 flex flex-col gap-2 border-t border-slate-200 pt-6 text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400 sm:flex-row sm:items-center sm:justify-between">
             <p>© {year} Field Appointment Platform. All rights reserved.</p>
-            <p className="text-xs">
-              Built by Ace • Full-stack workflow system
-            </p>
+            <p className="text-xs">Built by Ace • Real-world service automation</p>
           </div>
         </Container>
       </footer>
