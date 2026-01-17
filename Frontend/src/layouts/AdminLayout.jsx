@@ -1,6 +1,5 @@
 import { Outlet, Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import ThemeToggle from "../components/ThemeToggle.jsx";
 
 /* ---------- Reusable NavLink (DECLARED OUTSIDE) ---------- */
 function AdminNavLink({ to, children, onClick }) {
@@ -36,10 +35,6 @@ export default function AdminLayout() {
         <div className="flex h-full flex-col">
           <div className="px-6 py-4 text-lg font-semibold text-white">
             Admin Panel
-          </div>
-
-          <div className="px-6 pb-3">
-            <ThemeToggle />
           </div>
 
           <nav className="flex-1 space-y-1 px-3">

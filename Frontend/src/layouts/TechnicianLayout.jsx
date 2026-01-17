@@ -1,5 +1,4 @@
 import { Outlet, useNavigate } from "react-router-dom";
-import ThemeToggle from "../components/ThemeToggle.jsx";
 
 export default function TechnicianLayout() {
   const navigate = useNavigate();
@@ -31,7 +30,6 @@ export default function TechnicianLayout() {
 
           {/* Right */}
           <div className="flex items-center gap-3">
-            <ThemeToggle />
             <button
               onClick={logout}
               className="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white hover:bg-red-700"

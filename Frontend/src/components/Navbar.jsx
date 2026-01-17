@@ -1,24 +1,38 @@
-import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 /* ---------------- Helpers ---------------- */
-function scrollToSection(id) {
+function safeScrollTo(id) {
   const el = document.getElementById(id);
-  if (!el) return;
+  if (!el) return false;
   el.scrollIntoView({ behavior: "smooth", block: "start" });
+  return true;
 }
 
-/* ✅ declared OUTSIDE component (fix ESLint static-components) */
-function DrawerNavItem({ label, sectionId, onClick }) {
+/* ✅ MUST be outside component (eslint rule) */
+function DrawerNavItem({ label, onClick }) {
   return (
     <button
       type="button"
-      onClick={() => {
-        scrollToSection(sectionId);
-        onClick?.();
+      onClick={onClick}
+      className="
+        w-full text-left
+        rounded-lg px-4 py-3
+        text-sm font-semibold
+        text-slate-900
+        hover:bg-slate-900/5
+        active:scale-[0.99]
+        dark:text-white
+        dark:hover:bg-white/10
+        border border-slate-200/60
+        dark:border-white/10
+      "
+      style={{
+        all: "revert",
+        display: "block",
+        width: "100%",
+        cursor: "pointer",
       }}
-      className="w-full text-left rounded-md px-3 py-2 text-sm font-semibold text-slate-800 hover:bg-white/30
-                 dark:text-slate-100 dark:hover:bg-white/10"
     >
       {label}
     </button>
@@ -27,6 +41,7 @@ function DrawerNavItem({ label, sectionId, onClick }) {
 
 export default function Navbar({ variant = "full" }) {
   const navigate = useNavigate();
+  const location = useLocation();
 
   /* ---------------- Breakpoints ---------------- */
   const [width, setWidth] = useState(() => window.innerWidth);
@@ -38,13 +53,17 @@ export default function Navbar({ variant = "full" }) {
   }, []);
 
   const isDesktop = width >= 910;
-  const isTablet = width < 910 && width >= 770;
+  const isTablet = width >= 770 && width < 910;
   const isMobile = width < 770;
 
   /* ---------------- Drawer ---------------- */
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const drawerOpenRef = useRef(drawerOpen);
 
-  // ✅ Lock body scroll only when drawer is open
+  useEffect(() => {
+    drawerOpenRef.current = drawerOpen;
+  }, [drawerOpen]);
+
   useEffect(() => {
     if (!drawerOpen) return;
     const prev = document.body.style.overflow;
@@ -54,12 +73,15 @@ export default function Navbar({ variant = "full" }) {
     };
   }, [drawerOpen]);
 
-  // ✅ close drawer on resize
+  // ✅ Fix ESLint warning by using setTimeout to make it asynchronous
   useEffect(() => {
-    const onResize = () => setDrawerOpen(false);
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
-  }, []);
+    const timer = setTimeout(() => {
+      if (drawerOpenRef.current) {
+        setDrawerOpen(false);
+      }
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [location.pathname]);
 
   /* ---------------- Theme Toggle ---------------- */
   const [theme, setTheme] = useState(() => {
@@ -74,27 +96,47 @@ export default function Navbar({ variant = "full" }) {
     localStorage.setItem("theme", theme);
   }, [theme]);
 
-  const themeEmoji = useMemo(() => (theme === "dark" ? "☀️" : "🌙"), [theme]);
+  const emoji = useMemo(() => (theme === "dark" ? "☀️" : "🌙"), [theme]);
   const toggleTheme = () => setTheme((t) => (t === "dark" ? "light" : "dark"));
 
-  /* ---------------- UI ---------------- */
+  /* ---------------- Scroll Handling ---------------- */
+  const goToSection = (id) => {
+    if (location.pathname === "/") {
+      safeScrollTo(id);
+      return;
+    }
+    navigate("/");
+    setTimeout(() => safeScrollTo(id), 200);
+  };
+
+  const closeThen = (fn) => {
+    setDrawerOpen(false);
+    setTimeout(fn, 120);
+  };
+
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/80 backdrop-blur
-                       dark:border-slate-800 dark:bg-slate-950/70">
-      {/* ✅ prevent horizontal scroll issues */}
+    <header
+      className="
+        sticky top-0 z-50
+        border-b border-slate-200
+        bg-white/85 backdrop-blur
+        dark:border-slate-800
+        dark:bg-slate-950/75
+      "
+    >
       <div className="w-full overflow-x-hidden">
-        <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             {/* Brand */}
             <Link
               to="/"
-              className="flex items-center gap-2 min-w-0"
               onClick={() => setDrawerOpen(false)}
+              className="flex items-center gap-2 min-w-0"
             >
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 text-white font-bold shrink-0">
+              <div className="h-9 w-9 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold shrink-0">
                 FA
               </div>
-              <div className="leading-4 min-w-0">
+              <div className="min-w-0">
                 <p className="truncate text-sm font-bold text-slate-900 dark:text-white">
                   Field Appointment
                 </p>
@@ -104,96 +146,82 @@ export default function Navbar({ variant = "full" }) {
               </div>
             </Link>
 
-            {/* Desktop Nav links (ONLY >= 910) */}
+            {/* Desktop inline links */}
             {variant === "full" && isDesktop && (
               <nav className="hidden md:flex items-center gap-1">
-                <button
-                  type="button"
-                  onClick={() => scrollToSection("features")}
-                  className="rounded-md px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-slate-900
-                             dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-white"
-                >
-                  Features
-                </button>
-                <button
-                  type="button"
-                  onClick={() => scrollToSection("how")}
-                  className="rounded-md px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-slate-900
-                             dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-white"
-                >
-                  How it works
-                </button>
-                <button
-                  type="button"
-                  onClick={() => scrollToSection("security")}
-                  className="rounded-md px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-slate-900
-                             dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-white"
-                >
-                  Security
-                </button>
-                <button
-                  type="button"
-                  onClick={() => scrollToSection("footer")}
-                  className="rounded-md px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-slate-900
-                             dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-white"
-                >
-                  Contact
-                </button>
+                {[
+                  ["features", "Features"],
+                  ["how", "How it works"],
+                  ["security", "Security"],
+                  ["footer", "Contact"],
+                ].map(([id, label]) => (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => goToSection(id)}
+                    className="
+                      rounded-md px-3 py-2 text-sm font-semibold
+                      text-slate-700 hover:bg-slate-100 hover:text-slate-900
+                      dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-white
+                    "
+                  >
+                    {label}
+                  </button>
+                ))}
               </nav>
             )}
 
-            {/* Right side actions */}
+            {/* Right */}
             <div className="flex items-center gap-2 shrink-0">
-              {/* Theme emoji */}
+              {/* Theme */}
               <button
                 onClick={toggleTheme}
                 aria-label="Toggle theme"
-                className="rounded-md border border-slate-200 bg-white px-2.5 py-2 text-sm hover:bg-slate-50
-                           dark:border-slate-700 dark:bg-slate-950 dark:hover:bg-slate-900"
+                className="
+                  rounded-md border border-slate-200 bg-white px-2.5 py-2
+                  text-sm hover:bg-slate-50
+                  dark:border-slate-700 dark:bg-slate-950 dark:hover:bg-slate-900
+                "
               >
-                {themeEmoji}
+                {emoji}
               </button>
 
-              {/* ✅ Tablet: show login buttons inline, remove links, show hamburger */}
+              {/* Desktop + Tablet => login stays OUTSIDE */}
               {variant === "full" && (isDesktop || isTablet) && (
                 <div className="hidden sm:flex items-center gap-2">
                   <button
                     onClick={() => navigate("/login")}
-                    className="rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800
-                               dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
+                    className="
+                      rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white
+                      hover:bg-slate-800
+                      dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white
+                    "
                   >
                     Admin Login
                   </button>
-
                   <button
                     onClick={() => navigate("/tech-login")}
-                    className="rounded-md border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50
-                               dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:hover:bg-slate-900"
+                    className="
+                      rounded-md border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800
+                      hover:bg-slate-50
+                      dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:hover:bg-slate-900
+                    "
                   >
                     Technician Login
                   </button>
                 </div>
               )}
 
-              {/* ✅ Tablet hamburger: nav links in drawer */}
-              {variant === "full" && isTablet && (
+              {/* Hamburger menu for tablet and mobile when variant is full */}
+              {(isTablet || isMobile) && variant === "full" && (
                 <button
                   onClick={() => setDrawerOpen(true)}
-                  className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50
-                             dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:hover:bg-slate-900"
                   aria-label="Open menu"
-                >
-                  ☰
-                </button>
-              )}
-
-              {/* ✅ Mobile hamburger only */}
-              {variant === "full" && isMobile && (
-                <button
-                  onClick={() => setDrawerOpen(true)}
-                  className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50
-                             dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:hover:bg-slate-900"
-                  aria-label="Open menu"
+                  className="
+                    rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-800
+                    hover:bg-slate-50
+                    dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:hover:bg-slate-900
+                  "
                 >
                   ☰
                 </button>
@@ -202,75 +230,75 @@ export default function Navbar({ variant = "full" }) {
           </div>
         </div>
 
-        {/* ---------------- Drawer (Tablet + Mobile) ---------------- */}
-        {variant === "full" && drawerOpen && (
-          <div className="fixed inset-0 z-[60]">
-            {/* Glass overlay */}
+        {/* ✅ Drawer - Fixed: Remove variant condition here, only check drawerOpen */}
+        {drawerOpen && (
+          <div className="fixed inset-0 z-[9999]">
+            {/* overlay */}
             <div
+              className="absolute inset-0 bg-black/30 backdrop-blur-sm z-0"
               onClick={() => setDrawerOpen(false)}
-              className="absolute inset-0 bg-black/30 backdrop-blur-md"
             />
 
-            {/* Glass drawer */}
+            {/* drawer panel */}
             <div
-              className="absolute right-0 top-0 h-full w-[86%] max-w-sm overflow-y-auto border-l border-white/20
-                         bg-white/30 shadow-2xl backdrop-blur-xl
-                         dark:bg-slate-950/40 dark:border-white/10"
+              className="
+                absolute right-0 top-0 h-full w-[85%] max-w-sm
+                overflow-y-auto
+                border-l border-slate-200/60
+                bg-white/90 backdrop-blur-xl
+                shadow-2xl
+                dark:border-white/10
+                dark:bg-slate-950/90
+                z-10
+              "
             >
-              {/* Drawer header */}
-              <div className="flex items-center justify-between border-b border-white/20 px-4 py-4 dark:border-white/10">
-                <p className="text-sm font-semibold text-slate-900 dark:text-white">
+              {/* Header */}
+              <div className="flex items-center justify-between px-4 py-4 border-b border-slate-200/60 dark:border-white/10">
+                <p className="text-sm font-bold text-slate-900 dark:text-white">
                   Menu
                 </p>
                 <button
                   onClick={() => setDrawerOpen(false)}
-                  className="rounded-md px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-white/30
+                  className="rounded-md px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100
                              dark:text-slate-200 dark:hover:bg-white/10"
                 >
                   ✕
                 </button>
               </div>
 
-              {/* Drawer links */}
-              <div className="p-4">
-                <div className="space-y-1">
-                  <DrawerNavItem label="Features" sectionId="features" onClick={() => setDrawerOpen(false)} />
-                  <DrawerNavItem label="How it works" sectionId="how" onClick={() => setDrawerOpen(false)} />
-                  <DrawerNavItem label="Security" sectionId="security" onClick={() => setDrawerOpen(false)} />
-                  <DrawerNavItem label="Contact" sectionId="footer" onClick={() => setDrawerOpen(false)} />
-                </div>
+              {/* Nav Links */}
+              <div className="p-4 space-y-3">
+                {/* Show all navigation links in the drawer */}
+                <DrawerNavItem label="Features" onClick={() => closeThen(() => goToSection("features"))} />
+                <DrawerNavItem label="How it works" onClick={() => closeThen(() => goToSection("how"))} />
+                <DrawerNavItem label="Security" onClick={() => closeThen(() => goToSection("security"))} />
+                <DrawerNavItem label="Contact" onClick={() => closeThen(() => goToSection("footer"))} />
 
-                {/* ✅ Mobile only: login buttons inside drawer */}
-                {isMobile && (
-                  <div className="mt-6 space-y-2">
+                {/* Mobile logins - also show for tablet in drawer */}
+                {(isMobile || isTablet) && (
+                  <div className="pt-4 space-y-2">
                     <button
-                      onClick={() => {
-                        setDrawerOpen(false);
-                        navigate("/login");
-                      }}
-                      className="w-full rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800
+                      onClick={() => closeThen(() => navigate("/login"))}
+                      className="w-full rounded-md bg-slate-900 py-2 text-sm font-semibold text-white hover:bg-slate-800
                                  dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
                     >
                       Admin Login
                     </button>
 
                     <button
-                      onClick={() => {
-                        setDrawerOpen(false);
-                        navigate("/tech-login");
-                      }}
-                      className="w-full rounded-md border border-white/30 bg-white/30 px-4 py-2 text-sm font-semibold text-slate-900
-                                 hover:bg-white/40 dark:bg-white/10 dark:text-white dark:hover:bg-white/20"
+                      onClick={() => closeThen(() => navigate("/tech-login"))}
+                      className="w-full rounded-md border border-slate-200 bg-white py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50
+                                 dark:border-white/10 dark:bg-slate-950 dark:text-white dark:hover:bg-white/10"
                     >
                       Technician Login
                     </button>
                   </div>
                 )}
-
-                <p className="mt-5 text-xs text-slate-700 dark:text-slate-300">
-                  Smart scheduling • OTP verification • Automated reminders
-                </p>
               </div>
+
+              <p className="px-4 pb-6 text-xs text-slate-600 dark:text-slate-300">
+                Smart scheduling • OTP verification • Automated reminders
+              </p>
             </div>
           </div>
         )}
