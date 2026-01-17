@@ -22,7 +22,7 @@ export default function AdminLayout() {
 
   const logout = () => {
     localStorage.clear();
-    navigate("/login");
+    navigate("/");
   };
 
   return (

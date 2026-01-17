@@ -24,33 +24,42 @@ const prettifyStatus = (status) => String(status || "").replaceAll("_", " ");
 const getStatusBadgeClass = (status) => {
   const base =
     "inline-flex items-center rounded px-2 py-0.5 text-xs font-medium border";
+
   switch (status) {
     case "diagnosis_scheduled":
-      return `${base} bg-blue-50 text-blue-700 border-blue-100`;
+      return `${base} bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-500/10 dark:text-blue-300 dark:border-blue-500/30`;
+
     case "diagnosis_in_progress":
-      return `${base} bg-amber-50 text-amber-700 border-amber-100`;
+      return `${base} bg-amber-50 text-amber-700 border-amber-100 dark:bg-amber-500/10 dark:text-amber-300 dark:border-amber-500/30`;
+
     case "diagnosis_completed_waiting_approval":
-      return `${base} bg-indigo-50 text-indigo-700 border-indigo-100`;
+      return `${base} bg-indigo-50 text-indigo-700 border-indigo-100 dark:bg-indigo-500/10 dark:text-indigo-300 dark:border-indigo-500/30`;
+
     case "repair_scheduled":
-      return `${base} bg-indigo-50 text-indigo-700 border-indigo-100`;
+      return `${base} bg-indigo-50 text-indigo-700 border-indigo-100 dark:bg-indigo-500/10 dark:text-indigo-300 dark:border-indigo-500/30`;
+
     case "repair_in_progress":
-      return `${base} bg-amber-50 text-amber-700 border-amber-100`;
+      return `${base} bg-amber-50 text-amber-700 border-amber-100 dark:bg-amber-500/10 dark:text-amber-300 dark:border-amber-500/30`;
+
     case "repair_completed":
-      return `${base} bg-green-50 text-green-700 border-green-100`;
+      return `${base} bg-green-50 text-green-700 border-green-100 dark:bg-green-500/10 dark:text-green-300 dark:border-green-500/30`;
+
     case "waiting_for_assignment":
-      return `${base} bg-slate-100 text-slate-700 border-slate-200`;
+      return `${base} bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800/60 dark:text-slate-200 dark:border-slate-700`;
+
     case "cancelled":
-      return `${base} bg-red-50 text-red-700 border-red-100`;
+      return `${base} bg-red-50 text-red-700 border-red-100 dark:bg-red-500/10 dark:text-red-300 dark:border-red-500/30`;
+
     default:
-      return `${base} bg-slate-100 text-slate-700 border-slate-200`;
+      return `${base} bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800/60 dark:text-slate-200 dark:border-slate-700`;
   }
 };
 
 function InfoRow({ label, value }) {
   return (
     <div className="flex items-start justify-between gap-4">
-      <span className="text-sm text-slate-500">{label}</span>
-      <span className="text-sm font-medium text-slate-900 text-right">
+      <span className="text-sm text-slate-500 dark:text-slate-400">{label}</span>
+      <span className="text-sm font-medium text-slate-900 text-right dark:text-slate-100">
         {value}
       </span>
     </div>
@@ -67,7 +76,7 @@ function Step({ title, active, done }) {
             ? "bg-green-600 text-white border-green-600"
             : active
             ? "bg-blue-600 text-white border-blue-600"
-            : "bg-white text-slate-500 border-slate-200"
+            : "bg-white text-slate-500 border-slate-200 dark:bg-slate-950 dark:text-slate-400 dark:border-slate-700"
         }`}
       >
         {done ? "✓" : ""}
@@ -75,7 +84,9 @@ function Step({ title, active, done }) {
       <div className="min-w-0">
         <p
           className={`text-sm font-medium ${
-            active ? "text-slate-900" : "text-slate-600"
+            active
+              ? "text-slate-900 dark:text-slate-100"
+              : "text-slate-600 dark:text-slate-300"
           }`}
         >
           {title}
@@ -353,7 +364,7 @@ export default function AppointmentDetail() {
   /* ---------------- UI states ---------------- */
   if (loading) {
     return (
-      <div className="py-20 text-center text-slate-500">
+      <div className="py-20 text-center text-slate-500 dark:text-slate-400">
         Loading appointment…
       </div>
     );
@@ -361,7 +372,7 @@ export default function AppointmentDetail() {
 
   if (!appointment) {
     return (
-      <div className="py-20 text-center text-slate-500">
+      <div className="py-20 text-center text-slate-500 dark:text-slate-400">
         {message || "Appointment not found"}
       </div>
     );
@@ -372,15 +383,18 @@ export default function AppointmentDetail() {
       {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-slate-900">{headerTitle}</h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
+            {headerTitle}
+          </h1>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             Review appointment details and complete tasks
           </p>
         </div>
 
         <button
           onClick={() => navigate(-1)}
-          className="rounded-md bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-200"
+          className="rounded-md bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-200
+                     dark:bg-slate-800/60 dark:text-slate-200 dark:hover:bg-slate-800"
         >
           Back
         </button>
@@ -391,10 +405,10 @@ export default function AppointmentDetail() {
         <div
           className={`rounded-md border p-3 text-sm ${
             messageType === "success"
-              ? "border-green-200 bg-green-50 text-green-800"
+              ? "border-green-200 bg-green-50 text-green-800 dark:border-green-500/30 dark:bg-green-500/10 dark:text-green-300"
               : messageType === "error"
-              ? "border-red-200 bg-red-50 text-red-800"
-              : "border-slate-200 bg-slate-50 text-slate-700"
+              ? "border-red-200 bg-red-50 text-red-800 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300"
+              : "border-slate-200 bg-slate-50 text-slate-700 dark:border-slate-700 dark:bg-slate-800/40 dark:text-slate-200"
           }`}
         >
           {message}
@@ -402,14 +416,14 @@ export default function AppointmentDetail() {
       )}
 
       {/* Summary Card */}
-      <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
+      <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="space-y-2">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-lg font-semibold text-slate-900">
+              <span className="text-lg font-semibold text-slate-900 dark:text-slate-100">
                 {appointment.customer_name}
               </span>
-              <span className="rounded bg-slate-100 px-2 py-0.5 text-xs text-slate-700">
+              <span className="rounded bg-slate-100 px-2 py-0.5 text-xs text-slate-700 dark:bg-slate-800/60 dark:text-slate-200">
                 {typeLabel}
               </span>
               <span className={getStatusBadgeClass(appointment.status)}>
@@ -417,9 +431,9 @@ export default function AppointmentDetail() {
               </span>
             </div>
 
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-slate-500 dark:text-slate-400">
               Category:{" "}
-              <span className="font-medium text-slate-900">
+              <span className="font-medium text-slate-900 dark:text-slate-100">
                 {appointment.category}
               </span>
             </p>
@@ -440,8 +454,10 @@ export default function AppointmentDetail() {
 
       {/* Stepper */}
       {appointment.status !== "cancelled" && stepState.steps.length > 0 && (
-        <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
-          <h2 className="text-sm font-semibold text-slate-900">Progress</h2>
+        <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+            Progress
+          </h2>
           <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {stepState.steps.map((s, idx) => (
               <Step
@@ -456,11 +472,11 @@ export default function AppointmentDetail() {
       )}
 
       {/* Action Panel */}
-      <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
-        <h2 className="text-sm font-semibold text-slate-900">
+      <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
           Actions
         </h2>
-        <p className="mt-1 text-sm text-slate-500">
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
           Complete the required steps for this appointment
         </p>
 
@@ -471,14 +487,16 @@ export default function AppointmentDetail() {
               <button
                 onClick={requestOtpDiagnosis}
                 disabled={otpLoading}
-                className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
+                className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60
+                           dark:bg-blue-500 dark:hover:bg-blue-600"
               >
                 {otpLoading ? "Sending…" : "Request OTP"}
               </button>
 
               <button
                 onClick={() => fetchAppointment()}
-                className="rounded-md bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-200"
+                className="rounded-md bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-200
+                           dark:bg-slate-800/60 dark:text-slate-200 dark:hover:bg-slate-800"
               >
                 Refresh Status
               </button>
@@ -489,16 +507,18 @@ export default function AppointmentDetail() {
                 placeholder="Enter OTP"
                 value={otp}
                 onChange={(e) => setOtp(e.target.value)}
-                className="rounded-md border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600"
+                className="rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-blue-600
+                           dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:ring-blue-500"
               />
               <button
                 onClick={verifyOtpDiagnosis}
                 disabled={otpLoading || !otpRequested}
-                className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-60"
+                className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-60
+                           dark:bg-slate-800 dark:hover:bg-slate-700"
               >
                 Verify OTP
               </button>
-              <div className="text-xs text-slate-500 sm:flex sm:items-center">
+              <div className="text-xs text-slate-500 sm:flex sm:items-center dark:text-slate-400">
                 Ask customer for OTP and verify to start diagnosis.
               </div>
             </div>
@@ -510,8 +530,8 @@ export default function AppointmentDetail() {
           <div className="mt-5 space-y-4">
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
               {/* Diagnosis details */}
-              <div className="rounded-md border border-gray-200 p-4">
-                <h3 className="text-sm font-semibold text-slate-900">
+              <div className="rounded-md border border-gray-200 p-4 dark:border-slate-800 dark:bg-slate-950/40">
+                <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                   Diagnosis Details
                 </h3>
 
@@ -521,12 +541,13 @@ export default function AppointmentDetail() {
                     value={issue}
                     onChange={(e) => setIssue(e.target.value)}
                     rows={4}
-                    className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600"
+                    className="w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-blue-600
+                               dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:ring-blue-500"
                   />
 
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <div>
-                      <label className="text-xs font-medium text-slate-600">
+                      <label className="text-xs font-medium text-slate-600 dark:text-slate-300">
                         Estimated duration (hours) *
                       </label>
                       <input
@@ -536,9 +557,10 @@ export default function AppointmentDetail() {
                         type="number"
                         step="0.25"
                         min="0.25"
-                        className="mt-1 w-full rounded-md border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600"
+                        className="mt-1 w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-blue-600
+                                   dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:ring-blue-500"
                       />
-                      <p className="mt-1 text-xs text-slate-500">
+                      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                         Example: 1.5 hours = 90 minutes
                       </p>
                     </div>
@@ -548,7 +570,8 @@ export default function AppointmentDetail() {
                       value={estimatedCost}
                       onChange={(e) => setEstimatedCost(e.target.value)}
                       type="number"
-                      className="rounded-md border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600"
+                      className="rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-blue-600
+                                 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:ring-blue-500"
                     />
                   </div>
 
@@ -557,14 +580,16 @@ export default function AppointmentDetail() {
                     value={finalCost}
                     onChange={(e) => setFinalCost(e.target.value)}
                     type="number"
-                    className="rounded-md border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600"
+                    className="rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-blue-600
+                               dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:ring-blue-500"
                   />
 
-                  <label className="flex items-center gap-2 text-sm text-slate-700">
+                  <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
                     <input
                       type="checkbox"
                       checked={requiresParts}
                       onChange={(e) => setRequiresParts(e.target.checked)}
+                      className="accent-blue-600"
                     />
                     Requires parts
                   </label>
@@ -572,33 +597,35 @@ export default function AppointmentDetail() {
               </div>
 
               {/* Suggested repair schedule */}
-              <div className="rounded-md border border-gray-200 p-4">
-                <h3 className="text-sm font-semibold text-slate-900">
+              <div className="rounded-md border border-gray-200 p-4 dark:border-slate-800 dark:bg-slate-950/40">
+                <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                   Suggested Repair Schedule
                 </h3>
 
                 <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <div>
-                    <label className="text-xs font-medium text-slate-600">
+                    <label className="text-xs font-medium text-slate-600 dark:text-slate-300">
                       Repair Date *
                     </label>
                     <input
                       type="date"
                       value={repairDate}
                       onChange={(e) => setRepairDate(e.target.value)}
-                      className="mt-1 w-full rounded-md border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600"
+                      className="mt-1 w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-slate-900 focus:ring-2 focus:ring-blue-600
+                                 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:focus:ring-blue-500"
                     />
                   </div>
 
                   <div>
-                    <label className="text-xs font-medium text-slate-600">
+                    <label className="text-xs font-medium text-slate-600 dark:text-slate-300">
                       Repair Time (optional)
                     </label>
                     <input
                       type="time"
                       value={repairTime}
                       onChange={(e) => setRepairTime(e.target.value)}
-                      className="mt-1 w-full rounded-md border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600"
+                      className="mt-1 w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-slate-900 focus:ring-2 focus:ring-blue-600
+                                 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:focus:ring-blue-500"
                     />
                   </div>
                 </div>
@@ -606,12 +633,13 @@ export default function AppointmentDetail() {
                 <button
                   onClick={submitDiagnosis}
                   disabled={submitting}
-                  className="mt-4 w-full rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
+                  className="mt-4 w-full rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60
+                             dark:bg-blue-500 dark:hover:bg-blue-600"
                 >
                   {submitting ? "Submitting…" : "Submit Diagnosis"}
                 </button>
 
-                <p className="mt-2 text-xs text-slate-500">
+                <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
                   Submitting diagnosis sends quote to customer for approval.
                 </p>
               </div>
@@ -626,7 +654,8 @@ export default function AppointmentDetail() {
               <button
                 onClick={requestOtpRepair}
                 disabled={otpLoading}
-                className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
+                className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60
+                           dark:bg-blue-500 dark:hover:bg-blue-600"
               >
                 {otpLoading ? "Sending…" : "Start Repair (Request OTP)"}
               </button>
@@ -637,16 +666,18 @@ export default function AppointmentDetail() {
                 placeholder="Enter OTP"
                 value={otp}
                 onChange={(e) => setOtp(e.target.value)}
-                className="rounded-md border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600"
+                className="rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-blue-600
+                           dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:ring-blue-500"
               />
               <button
                 onClick={verifyOtpRepair}
                 disabled={otpLoading}
-                className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-60"
+                className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-60
+                           dark:bg-slate-800 dark:hover:bg-slate-700"
               >
                 Verify OTP
               </button>
-              <div className="text-xs text-slate-500 sm:flex sm:items-center">
+              <div className="text-xs text-slate-500 sm:flex sm:items-center dark:text-slate-400">
                 Verify OTP to begin repair work.
               </div>
             </div>
@@ -656,11 +687,11 @@ export default function AppointmentDetail() {
         {/* Repair In Progress */}
         {appointment.status === "repair_in_progress" && (
           <div className="mt-5 space-y-4">
-            <div className="rounded-md border border-gray-200 p-4">
-              <h3 className="text-sm font-semibold text-slate-900">
+            <div className="rounded-md border border-gray-200 p-4 dark:border-slate-800 dark:bg-slate-950/40">
+              <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                 Complete Repair & Payment
               </h3>
-              <p className="mt-1 text-sm text-slate-500">
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                 Enter final amount and verify payment OTP.
               </p>
 
@@ -670,18 +701,20 @@ export default function AppointmentDetail() {
                   type="number"
                   value={finalCost}
                   onChange={(e) => setFinalCost(e.target.value)}
-                  className="rounded-md border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600"
+                  className="rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-blue-600
+                             dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:ring-blue-500"
                 />
 
                 <button
                   onClick={requestOtpPayment}
                   disabled={otpLoading}
-                  className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
+                  className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60
+                             dark:bg-blue-500 dark:hover:bg-blue-600"
                 >
                   {otpLoading ? "Sending…" : "Request Payment OTP"}
                 </button>
 
-                <div className="text-xs text-slate-500 sm:flex sm:items-center">
+                <div className="text-xs text-slate-500 sm:flex sm:items-center dark:text-slate-400">
                   OTP will be sent to customer for payment confirmation.
                 </div>
               </div>
@@ -691,18 +724,20 @@ export default function AppointmentDetail() {
                   placeholder="Enter Payment OTP"
                   value={otp}
                   onChange={(e) => setOtp(e.target.value)}
-                  className="rounded-md border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600"
+                  className="rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-blue-600
+                             dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:ring-blue-500"
                 />
 
                 <button
                   onClick={verifyOtpPayment}
                   disabled={otpLoading}
-                  className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-60"
+                  className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-60
+                             dark:bg-slate-800 dark:hover:bg-slate-700"
                 >
                   Verify Payment
                 </button>
 
-                <div className="text-xs text-slate-500 sm:flex sm:items-center">
+                <div className="text-xs text-slate-500 sm:flex sm:items-center dark:text-slate-400">
                   Verify OTP to mark payment as completed.
                 </div>
               </div>
@@ -712,25 +747,25 @@ export default function AppointmentDetail() {
 
         {/* Completed */}
         {appointment.status === "repair_completed" && (
-          <div className="mt-5 rounded-md border border-green-200 bg-green-50 p-4">
-            <p className="text-sm font-semibold text-green-800">
+          <div className="mt-5 rounded-md border border-green-200 bg-green-50 p-4 dark:border-green-500/30 dark:bg-green-500/10">
+            <p className="text-sm font-semibold text-green-800 dark:text-green-300">
               Repair completed successfully
             </p>
-            <p className="mt-1 text-sm text-green-700">
+            <p className="mt-1 text-sm text-green-700 dark:text-green-300/90">
               Payment is completed and appointment is closed.
             </p>
           </div>
         )}
 
         {/* Fallback */}
-        {![
+        {[
           "diagnosis_scheduled",
           "diagnosis_in_progress",
           "repair_scheduled",
           "repair_in_progress",
           "repair_completed",
-        ].includes(appointment.status) && (
-          <div className="mt-5 text-sm text-red-700">
+        ].includes(appointment.status) === false && (
+          <div className="mt-5 text-sm text-red-700 dark:text-red-300">
             No actions available for current status.
           </div>
         )}

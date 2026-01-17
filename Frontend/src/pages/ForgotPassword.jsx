@@ -6,7 +6,9 @@ function StepPill({ active, label }) {
   return (
     <span
       className={`rounded px-2 py-1 text-xs font-medium ${
-        active ? "bg-blue-100 text-blue-700" : "bg-slate-100 text-slate-500"
+        active
+          ? "bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300"
+          : "bg-slate-100 text-slate-500 dark:bg-slate-800/60 dark:text-slate-300"
       }`}
     >
       {label}
@@ -147,34 +149,34 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4 dark:bg-slate-950">
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="mb-6 text-center">
-          <p className="text-xs font-semibold tracking-wide text-blue-600">
+          <p className="text-xs font-semibold tracking-wide text-blue-600 dark:text-blue-400">
             FIELD APPOINTMENT PLATFORM
           </p>
-          <h1 className="mt-2 text-2xl font-semibold text-slate-900">
+          <h1 className="mt-2 text-2xl font-semibold text-slate-900 dark:text-slate-100">
             Forgot Password
           </h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             Reset password for{" "}
-            <span className="font-medium text-slate-900 capitalize">
+            <span className="font-medium text-slate-900 capitalize dark:text-slate-100">
               {userType}
             </span>
           </p>
         </div>
 
         {/* Card */}
-        <div className="rounded-xl border border-gray-200 bg-white shadow-sm">
+        <div className="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <div className="px-6 py-6">
             {/* Messages */}
             {(error || info) && (
               <div
                 className={`mb-4 rounded-md border px-3 py-2 text-sm ${
                   error
-                    ? "border-red-200 bg-red-50 text-red-700"
-                    : "border-green-200 bg-green-50 text-green-800"
+                    ? "border-red-200 bg-red-50 text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300"
+                    : "border-green-200 bg-green-50 text-green-800 dark:border-green-500/30 dark:bg-green-500/10 dark:text-green-300"
                 }`}
               >
                 {error || info}
@@ -192,7 +194,7 @@ export default function ForgotPassword() {
             {step === 1 && (
               <div className="mt-5 space-y-3">
                 <div>
-                  <label className="block text-xs font-medium text-slate-600">
+                  <label className="block text-xs font-medium text-slate-600 dark:text-slate-300">
                     Registered Email
                   </label>
                   <input
@@ -200,8 +202,9 @@ export default function ForgotPassword() {
                     placeholder="Enter your registered email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="mt-1 w-full rounded-md border border-gray-200 px-3 py-2 text-sm
-                               focus:outline-none focus:ring-2 focus:ring-blue-600"
+                    className="mt-1 w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400
+                               focus:outline-none focus:ring-2 focus:ring-blue-600
+                               dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:ring-blue-500"
                   />
                 </div>
 
@@ -209,7 +212,8 @@ export default function ForgotPassword() {
                   onClick={sendOtp}
                   disabled={sending}
                   className="w-full rounded-md bg-blue-600 py-2 text-sm font-semibold text-white
-                             hover:bg-blue-700 disabled:opacity-60"
+                             hover:bg-blue-700 disabled:opacity-60
+                             dark:bg-blue-500 dark:hover:bg-blue-600"
                 >
                   {sending ? "Sending OTP…" : "Send OTP"}
                 </button>
@@ -217,7 +221,7 @@ export default function ForgotPassword() {
                 <button
                   type="button"
                   onClick={() => navigate(loginRoute)}
-                  className="w-full text-sm text-slate-500 hover:underline"
+                  className="w-full text-sm text-slate-500 hover:underline dark:text-slate-400"
                 >
                   Back to login
                 </button>
@@ -227,24 +231,28 @@ export default function ForgotPassword() {
             {/* Step 2 */}
             {step === 2 && (
               <div className="mt-5 space-y-3">
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-slate-500 dark:text-slate-400">
                   OTP sent to:{" "}
-                  <span className="font-medium text-slate-700">{email}</span>
+                  <span className="font-medium text-slate-700 dark:text-slate-200">
+                    {email}
+                  </span>
                 </p>
 
                 <input
                   placeholder="Enter OTP"
                   value={otp}
                   onChange={(e) => setOtp(e.target.value)}
-                  className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm
-                             focus:outline-none focus:ring-2 focus:ring-blue-600"
+                  className="w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400
+                             focus:outline-none focus:ring-2 focus:ring-blue-600
+                             dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:ring-blue-500"
                 />
 
                 <button
                   onClick={verifyOtp}
                   disabled={verifying}
                   className="w-full rounded-md bg-blue-600 py-2 text-sm font-semibold text-white
-                             hover:bg-blue-700 disabled:opacity-60"
+                             hover:bg-blue-700 disabled:opacity-60
+                             dark:bg-blue-500 dark:hover:bg-blue-600"
                 >
                   {verifying ? "Verifying…" : "Verify OTP"}
                 </button>
@@ -253,7 +261,8 @@ export default function ForgotPassword() {
                   onClick={sendOtp}
                   disabled={cooldown > 0 || sending}
                   className="w-full rounded-md bg-slate-100 py-2 text-sm font-medium text-slate-700
-                             hover:bg-slate-200 disabled:opacity-60"
+                             hover:bg-slate-200 disabled:opacity-60
+                             dark:bg-slate-800/60 dark:text-slate-200 dark:hover:bg-slate-800"
                 >
                   {cooldown > 0 ? `Resend OTP (${cooldown}s)` : "Resend OTP"}
                 </button>
@@ -261,7 +270,7 @@ export default function ForgotPassword() {
                 <button
                   type="button"
                   onClick={() => setStep(1)}
-                  className="w-full text-sm text-slate-500 hover:underline"
+                  className="w-full text-sm text-slate-500 hover:underline dark:text-slate-400"
                 >
                   Change email
                 </button>
@@ -272,13 +281,13 @@ export default function ForgotPassword() {
             {step === 3 && (
               <div className="mt-5 space-y-3">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs font-medium text-slate-600">
+                  <p className="text-xs font-medium text-slate-600 dark:text-slate-300">
                     Set a new password
                   </p>
                   <button
                     type="button"
                     onClick={() => setShowPw((s) => !s)}
-                    className="text-xs font-medium text-blue-600 hover:underline"
+                    className="text-xs font-medium text-blue-600 hover:underline dark:text-blue-400"
                   >
                     {showPw ? "Hide" : "Show"}
                   </button>
@@ -289,8 +298,9 @@ export default function ForgotPassword() {
                   placeholder="New password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm
-                             focus:outline-none focus:ring-2 focus:ring-blue-600"
+                  className="w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400
+                             focus:outline-none focus:ring-2 focus:ring-blue-600
+                             dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:ring-blue-500"
                 />
 
                 <input
@@ -298,15 +308,17 @@ export default function ForgotPassword() {
                   placeholder="Confirm password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm
-                             focus:outline-none focus:ring-2 focus:ring-blue-600"
+                  className="w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400
+                             focus:outline-none focus:ring-2 focus:ring-blue-600
+                             dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:ring-blue-500"
                 />
 
                 <button
                   onClick={resetPassword}
                   disabled={resetting}
                   className="w-full rounded-md bg-blue-600 py-2 text-sm font-semibold text-white
-                             hover:bg-blue-700 disabled:opacity-60"
+                             hover:bg-blue-700 disabled:opacity-60
+                             dark:bg-blue-500 dark:hover:bg-blue-600"
                 >
                   {resetting ? "Updating…" : "Reset Password"}
                 </button>
@@ -314,7 +326,7 @@ export default function ForgotPassword() {
                 <button
                   type="button"
                   onClick={() => navigate(loginRoute)}
-                  className="w-full text-sm text-slate-500 hover:underline"
+                  className="w-full text-sm text-slate-500 hover:underline dark:text-slate-400"
                 >
                   Back to login
                 </button>
@@ -323,7 +335,7 @@ export default function ForgotPassword() {
           </div>
         </div>
 
-        <p className="mt-6 text-center text-xs text-slate-400">
+        <p className="mt-6 text-center text-xs text-slate-400 dark:text-slate-500">
           Secure reset flow • OTP verification required
         </p>
       </div>

@@ -149,7 +149,9 @@ export default function TechniciansPage() {
 
   if (loading) {
     return (
-      <p className="py-20 text-center text-slate-500">Loading technicians…</p>
+      <p className="py-20 text-center text-slate-500 dark:text-slate-400">
+        Loading technicians…
+      </p>
     );
   }
 
@@ -161,40 +163,48 @@ export default function TechniciansPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-xl font-semibold text-slate-900">Technicians</h1>
-        <p className="mt-1 text-sm text-slate-500">Manage technicians</p>
+        <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
+          Technicians
+        </h1>
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+          Manage technicians
+        </p>
       </div>
 
       {/* Add Technician */}
-      <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
-        <h2 className="mb-4 text-md font-semibold text-slate-900">
+      <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <h2 className="mb-4 text-md font-semibold text-slate-900 dark:text-slate-100">
           Add Technician
         </h2>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <input
-            className="rounded-md border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600"
+            className="rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600
+                       dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:ring-blue-500"
             placeholder="Name *"
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
 
           <input
-            className="rounded-md border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600"
+            className="rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600
+                       dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:ring-blue-500"
             placeholder="Phone *"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
           />
 
           <input
-            className="rounded-md border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600"
+            className="rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600
+                       dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:ring-blue-500"
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
 
           <input
-            className="rounded-md border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600"
+            className="rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600
+                       dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:ring-blue-500"
             placeholder="Temporary Password *"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -202,12 +212,13 @@ export default function TechniciansPage() {
 
           {/* Work start */}
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-medium text-slate-600">
+            <label className="text-xs font-medium text-slate-600 dark:text-slate-300">
               Work start time *
             </label>
             <input
               type="time"
-              className="rounded-md border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600"
+              className="rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600
+                         dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:focus:ring-blue-500"
               value={workStart}
               onChange={(e) => setWorkStart(e.target.value)}
             />
@@ -215,19 +226,21 @@ export default function TechniciansPage() {
 
           {/* Work end */}
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-medium text-slate-600">
+            <label className="text-xs font-medium text-slate-600 dark:text-slate-300">
               Work end time *
             </label>
             <input
               type="time"
-              className="rounded-md border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600"
+              className="rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600
+                         dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:focus:ring-blue-500"
               value={workEnd}
               onChange={(e) => setWorkEnd(e.target.value)}
             />
           </div>
 
           <input
-            className="rounded-md border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600 sm:col-span-2 lg:col-span-3"
+            className="rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 sm:col-span-2 lg:col-span-3
+                       dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:ring-blue-500"
             placeholder="Category (comma separated) *"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
@@ -235,18 +248,19 @@ export default function TechniciansPage() {
         </div>
 
         <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <label className="flex items-center gap-2 text-sm text-slate-700">
+          <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
             <input
               type="checkbox"
               checked={active}
               onChange={(e) => setActive(e.target.checked)}
+              className="accent-blue-600"
             />
             Active
           </label>
 
           <button
             onClick={handleAddTechnician}
-            className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+            className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
           >
             Add Technician
           </button>
@@ -258,23 +272,25 @@ export default function TechniciansPage() {
         {technicians.map((t) => (
           <div
             key={t.id}
-            className={`rounded-lg border border-gray-200 bg-white p-4 shadow-sm ${
+            className={`rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 ${
               !t.active ? "opacity-70" : ""
             }`}
           >
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="text-sm font-semibold text-slate-900">{t.name}</p>
-                <p className="text-xs text-slate-500">{t.phone}</p>
+                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                  {t.name}
+                </p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">{t.phone}</p>
                 {t.email && (
-                  <p className="text-xs text-slate-500">{t.email}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">{t.email}</p>
                 )}
               </div>
 
               <button
                 onClick={() => toggleTechnicianStatus(t)}
                 className={`relative inline-flex h-5 w-9 items-center rounded-full ${
-                  t.active ? "bg-green-500" : "bg-slate-300"
+                  t.active ? "bg-green-500" : "bg-slate-300 dark:bg-slate-700"
                 }`}
               >
                 <span
@@ -289,16 +305,16 @@ export default function TechniciansPage() {
               {t.category.split(",").map((c, i) => (
                 <span
                   key={i}
-                  className="rounded bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-700"
+                  className="rounded bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-700 dark:bg-slate-800/60 dark:text-slate-200"
                 >
                   {c.trim()}
                 </span>
               ))}
             </div>
 
-            <p className="mt-3 text-xs text-slate-600">
+            <p className="mt-3 text-xs text-slate-600 dark:text-slate-300">
               Work Hours:{" "}
-              <span className="font-semibold text-slate-900">
+              <span className="font-semibold text-slate-900 dark:text-slate-100">
                 {to12Hour(t.work_start_time)} – {to12Hour(t.work_end_time)}
               </span>
             </p>
@@ -306,13 +322,13 @@ export default function TechniciansPage() {
             <div className="mt-4 flex gap-3">
               <button
                 onClick={() => setEditTech(t)}
-                className="rounded-md bg-slate-100 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-200"
+                className="rounded-md bg-slate-100 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-200 dark:bg-slate-800/60 dark:text-slate-200 dark:hover:bg-slate-800"
               >
                 Edit
               </button>
               <button
                 onClick={() => setDeleteTech(t)}
-                className="rounded-md bg-red-50 px-3 py-1.5 text-sm font-medium text-red-700 hover:bg-red-100"
+                className="rounded-md bg-red-50 px-3 py-1.5 text-sm font-medium text-red-700 hover:bg-red-100 dark:bg-red-500/10 dark:text-red-300 dark:hover:bg-red-500/20"
               >
                 Delete
               </button>
@@ -322,10 +338,10 @@ export default function TechniciansPage() {
       </div>
 
       {/* -------------------- TABLE VIEW (Desktop) -------------------- */}
-      <div className="hidden md:block rounded-lg border border-gray-200 bg-white shadow-sm">
+      <div className="hidden md:block rounded-lg border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <div className="overflow-x-auto">
           <table className="min-w-[900px] w-full">
-            <thead className="bg-slate-50 text-sm text-slate-600">
+            <thead className="bg-slate-50 text-sm text-slate-600 dark:bg-slate-950/40 dark:text-slate-300">
               <tr>
                 <th className="px-4 py-3 text-left">Name</th>
                 <th className="px-4 py-3 text-left">Phone</th>
@@ -336,25 +352,27 @@ export default function TechniciansPage() {
               </tr>
             </thead>
 
-            <tbody>
+            <tbody className="divide-y divide-gray-200 dark:divide-slate-800">
               {technicians.map((t) => (
                 <tr
                   key={t.id}
-                  className={`border-t text-sm hover:bg-slate-50 ${
+                  className={`text-sm hover:bg-slate-50 dark:hover:bg-slate-800/40 ${
                     !t.active ? "opacity-70" : ""
                   }`}
                 >
-                  <td className="px-4 py-3 font-medium text-slate-900">
+                  <td className="px-4 py-3 font-medium text-slate-900 dark:text-slate-100">
                     {t.name}
                   </td>
-                  <td className="px-4 py-3 text-slate-700">{t.phone}</td>
+                  <td className="px-4 py-3 text-slate-700 dark:text-slate-200">
+                    {t.phone}
+                  </td>
 
                   <td className="px-4 py-3">
                     <div className="flex flex-wrap gap-1">
                       {t.category.split(",").map((c, i) => (
                         <span
                           key={i}
-                          className="rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700"
+                          className="rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700 dark:bg-slate-800/60 dark:text-slate-200"
                         >
                           {c.trim()}
                         </span>
@@ -362,7 +380,7 @@ export default function TechniciansPage() {
                     </div>
                   </td>
 
-                  <td className="px-4 py-3 text-slate-700">
+                  <td className="px-4 py-3 text-slate-700 dark:text-slate-200">
                     {to12Hour(t.work_start_time)} – {to12Hour(t.work_end_time)}
                   </td>
 
@@ -370,7 +388,7 @@ export default function TechniciansPage() {
                     <button
                       onClick={() => toggleTechnicianStatus(t)}
                       className={`relative inline-flex h-5 w-9 items-center rounded-full ${
-                        t.active ? "bg-green-500" : "bg-slate-300"
+                        t.active ? "bg-green-500" : "bg-slate-300 dark:bg-slate-700"
                       }`}
                     >
                       <span
@@ -384,14 +402,14 @@ export default function TechniciansPage() {
                   <td className="px-4 py-3 text-right space-x-4">
                     <button
                       onClick={() => setEditTech(t)}
-                      className="text-sm font-medium text-blue-600 hover:underline"
+                      className="text-sm font-medium text-blue-600 hover:underline dark:text-blue-400"
                     >
                       Edit
                     </button>
 
                     <button
                       onClick={() => setDeleteTech(t)}
-                      className="text-sm font-medium text-red-600 hover:underline"
+                      className="text-sm font-medium text-red-600 hover:underline dark:text-red-300"
                     >
                       Delete
                     </button>
@@ -406,15 +424,16 @@ export default function TechniciansPage() {
       {/* Edit Modal */}
       {editTech && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <div className="w-full max-w-lg rounded-lg bg-white p-5 shadow-lg">
-            <h2 className="mb-4 text-sm font-semibold text-slate-900">
+          <div className="w-full max-w-lg rounded-lg bg-white p-5 shadow-lg dark:bg-slate-900 dark:border dark:border-slate-800">
+            <h2 className="mb-4 text-sm font-semibold text-slate-900 dark:text-slate-100">
               Edit Technician
             </h2>
 
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <input
                 placeholder="Name"
-                className="rounded-md border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600"
+                className="rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600
+                           dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:focus:ring-blue-500"
                 value={editTech.name}
                 onChange={(e) =>
                   setEditTech({ ...editTech, name: e.target.value })
@@ -423,7 +442,8 @@ export default function TechniciansPage() {
 
               <input
                 placeholder="Phone no"
-                className="rounded-md border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600"
+                className="rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600
+                           dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:focus:ring-blue-500"
                 value={editTech.phone}
                 onChange={(e) =>
                   setEditTech({ ...editTech, phone: e.target.value })
@@ -432,7 +452,8 @@ export default function TechniciansPage() {
 
               <input
                 placeholder="Email"
-                className="rounded-md border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600"
+                className="rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600
+                           dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:focus:ring-blue-500"
                 value={editTech.email || ""}
                 onChange={(e) =>
                   setEditTech({ ...editTech, email: e.target.value })
@@ -441,7 +462,8 @@ export default function TechniciansPage() {
 
               <input
                 placeholder="Category"
-                className="rounded-md border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600"
+                className="rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600
+                           dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:focus:ring-blue-500"
                 value={editTech.category}
                 onChange={(e) =>
                   setEditTech({ ...editTech, category: e.target.value })
@@ -449,12 +471,13 @@ export default function TechniciansPage() {
               />
 
               <div className="flex flex-col gap-1">
-                <label className="text-xs font-medium text-slate-600">
+                <label className="text-xs font-medium text-slate-600 dark:text-slate-300">
                   Work start
                 </label>
                 <input
                   type="time"
-                  className="rounded-md border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600"
+                  className="rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600
+                             dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:focus:ring-blue-500"
                   value={editTech.work_start_time || ""}
                   onChange={(e) =>
                     setEditTech({
@@ -466,12 +489,13 @@ export default function TechniciansPage() {
               </div>
 
               <div className="flex flex-col gap-1">
-                <label className="text-xs font-medium text-slate-600">
+                <label className="text-xs font-medium text-slate-600 dark:text-slate-300">
                   Work end
                 </label>
                 <input
                   type="time"
-                  className="rounded-md border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600"
+                  className="rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600
+                             dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:focus:ring-blue-500"
                   value={editTech.work_end_time || ""}
                   onChange={(e) =>
                     setEditTech({
@@ -483,7 +507,8 @@ export default function TechniciansPage() {
               </div>
 
               <input
-                className="rounded-md border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600 sm:col-span-2"
+                className="rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 sm:col-span-2
+                           dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:focus:ring-blue-500"
                 placeholder="New password (optional)"
                 value={editPassword}
                 onChange={(e) => setEditPassword(e.target.value)}
@@ -493,13 +518,13 @@ export default function TechniciansPage() {
             <div className="mt-4 flex justify-end gap-3">
               <button
                 onClick={() => setEditTech(null)}
-                className="rounded-md bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-200"
+                className="rounded-md bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-200 dark:bg-slate-800/60 dark:text-slate-200 dark:hover:bg-slate-800"
               >
                 Cancel
               </button>
               <button
                 onClick={saveEdit}
-                className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
               >
                 Save Changes
               </button>
@@ -511,14 +536,14 @@ export default function TechniciansPage() {
       {/* Delete Confirmation Modal */}
       {deleteTech && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <div className="w-full max-w-md rounded-lg bg-white p-5 shadow-lg">
-            <h2 className="text-sm font-semibold text-slate-900">
+          <div className="w-full max-w-md rounded-lg bg-white p-5 shadow-lg dark:bg-slate-900 dark:border dark:border-slate-800">
+            <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
               Delete Technician
             </h2>
 
-            <p className="mt-2 text-sm text-slate-600">
+            <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
               Are you sure you want to delete{" "}
-              <span className="font-medium text-slate-900">
+              <span className="font-medium text-slate-900 dark:text-slate-100">
                 {deleteTech.name}
               </span>
               ? This action cannot be undone.
@@ -528,7 +553,8 @@ export default function TechniciansPage() {
               <button
                 onClick={() => setDeleteTech(null)}
                 disabled={deleting}
-                className="rounded-md bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-200 disabled:opacity-60"
+                className="rounded-md bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-200 disabled:opacity-60
+                           dark:bg-slate-800/60 dark:text-slate-200 dark:hover:bg-slate-800"
               >
                 Cancel
               </button>
