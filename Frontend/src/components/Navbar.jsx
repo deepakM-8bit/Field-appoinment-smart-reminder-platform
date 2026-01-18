@@ -242,9 +242,6 @@ export default function Navbar({ variant = "full" }) {
             <div className="p-6">
               {/* Navigation Links */}
               <div className="mb-8">
-                <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">
-                  Navigation
-                </h3>
                 <div className="space-y-2">
                   {navItems.map(({ id, label }) => (
                     <button
