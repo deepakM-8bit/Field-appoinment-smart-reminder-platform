@@ -63,26 +63,26 @@ export default function Signup() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         {/* Brand / Header */}
         <div className="mb-6 text-center">
-          <p className="text-xs font-semibold tracking-wide text-blue-600">
+          <p className="text-xs font-semibold tracking-wide text-blue-600 dark:text-blue-400">
             FIELD APPOINTMENT PLATFORM
           </p>
-          <h1 className="mt-2 text-2xl font-semibold text-slate-900">
+          <h1 className="mt-2 text-2xl font-semibold text-slate-900 dark:text-slate-100">
             Create Admin Account
           </h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             Create your business profile to manage appointments & technicians
           </p>
         </div>
 
         {/* Card */}
-        <div className="rounded-xl border border-gray-200 bg-white shadow-sm">
+        <div className="rounded-xl border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
           {/* Avatar */}
           <div className="flex justify-center pt-8">
-            <div className="h-16 w-16 rounded-full bg-blue-600/10 flex items-center justify-center border border-blue-100">
+            <div className="h-16 w-16 rounded-full bg-blue-600/10 dark:bg-blue-500/10 flex items-center justify-center border border-blue-100 dark:border-blue-900/40">
               {/* User Logo */}
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -90,7 +90,7 @@ export default function Signup() {
                 height="35"
                 viewBox="0 0 24 24"
                 fill="none"
-                className="text-blue-700"
+                className="text-blue-700 dark:text-blue-400"
               >
                 <path
                   d="M20 21a8 8 0 0 0-16 0"
@@ -110,7 +110,7 @@ export default function Signup() {
           <div className="px-6 pb-7 pt-6">
             {/* Error */}
             {error && (
-              <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+              <div className="mb-4 rounded-md border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-950/40 px-3 py-2 text-sm text-red-700 dark:text-red-300">
                 {error}
               </div>
             )}
@@ -119,7 +119,7 @@ export default function Signup() {
             <div className="space-y-4">
               {/* Business Name */}
               <div>
-                <label className="block text-xs font-medium text-slate-600">
+                <label className="block text-xs font-medium text-slate-600 dark:text-slate-300">
                   Business / Owner Name
                 </label>
                 <input
@@ -127,14 +127,16 @@ export default function Signup() {
                   placeholder="Eg: Ace Services"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="mt-1 w-full rounded-md border border-gray-200 px-3 py-2 text-sm
+                  className="mt-1 w-full rounded-md border border-gray-200 dark:border-slate-700
+                             bg-white dark:bg-slate-950 px-3 py-2 text-sm text-slate-900 dark:text-slate-100
+                             placeholder:text-slate-400 dark:placeholder:text-slate-500
                              focus:outline-none focus:ring-2 focus:ring-blue-600"
                 />
               </div>
 
               {/* Email */}
               <div>
-                <label className="block text-xs font-medium text-slate-600">
+                <label className="block text-xs font-medium text-slate-600 dark:text-slate-300">
                   Email
                 </label>
                 <input
@@ -142,14 +144,16 @@ export default function Signup() {
                   placeholder="admin@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="mt-1 w-full rounded-md border border-gray-200 px-3 py-2 text-sm
+                  className="mt-1 w-full rounded-md border border-gray-200 dark:border-slate-700
+                             bg-white dark:bg-slate-950 px-3 py-2 text-sm text-slate-900 dark:text-slate-100
+                             placeholder:text-slate-400 dark:placeholder:text-slate-500
                              focus:outline-none focus:ring-2 focus:ring-blue-600"
                 />
               </div>
 
               {/* Password */}
               <div>
-                <label className="block text-xs font-medium text-slate-600">
+                <label className="block text-xs font-medium text-slate-600 dark:text-slate-300">
                   Password
                 </label>
 
@@ -159,13 +163,15 @@ export default function Signup() {
                     placeholder="Minimum 6 characters"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full rounded-md border border-gray-200 px-3 py-2 pr-12 text-sm
+                    className="w-full rounded-md border border-gray-200 dark:border-slate-700
+                               bg-white dark:bg-slate-950 px-3 py-2 pr-12 text-sm text-slate-900 dark:text-slate-100
+                               placeholder:text-slate-400 dark:placeholder:text-slate-500
                                focus:outline-none focus:ring-2 focus:ring-blue-600"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword((v) => !v)}
-                    className="absolute inset-y-0 right-0 px-3 text-xs font-medium text-slate-600 hover:text-slate-900"
+                    className="absolute inset-y-0 right-0 px-3 text-xs font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
                   >
                     {showPassword ? "Hide" : "Show"}
                   </button>
@@ -174,7 +180,7 @@ export default function Signup() {
 
               {/* Confirm Password */}
               <div>
-                <label className="block text-xs font-medium text-slate-600">
+                <label className="block text-xs font-medium text-slate-600 dark:text-slate-300">
                   Confirm Password
                 </label>
                 <input
@@ -182,7 +188,9 @@ export default function Signup() {
                   placeholder="Re-enter password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="mt-1 w-full rounded-md border border-gray-200 px-3 py-2 text-sm
+                  className="mt-1 w-full rounded-md border border-gray-200 dark:border-slate-700
+                             bg-white dark:bg-slate-950 px-3 py-2 text-sm text-slate-900 dark:text-slate-100
+                             placeholder:text-slate-400 dark:placeholder:text-slate-500
                              focus:outline-none focus:ring-2 focus:ring-blue-600"
                 />
               </div>
@@ -202,7 +210,7 @@ export default function Signup() {
                 <button
                   type="button"
                   onClick={() => navigate("/login")}
-                  className="text-sm text-slate-500 hover:underline"
+                  className="text-sm text-slate-500 dark:text-slate-400 hover:underline"
                 >
                   Already have an account? Login
                 </button>
@@ -211,7 +219,7 @@ export default function Signup() {
           </div>
         </div>
 
-        <p className="mt-6 text-center text-xs text-slate-400">
+        <p className="mt-6 text-center text-xs text-slate-400 dark:text-slate-500">
           Secure signup • Admin-only access
         </p>
       </div>

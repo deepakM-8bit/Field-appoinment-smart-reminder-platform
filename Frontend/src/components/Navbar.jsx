@@ -23,8 +23,8 @@ export default function Navbar({ variant = "full" }) {
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
-  const isDesktop = width >= 910;
-  const isTablet = width >= 770 && width < 910;
+  const isDesktop = width >= 1030;
+  const isTablet = width >= 770 && width < 1030;
   const isMobile = width < 770;
 
   /* ---------------- Drawer Logic ---------------- */
