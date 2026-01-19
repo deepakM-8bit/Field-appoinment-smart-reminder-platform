@@ -136,8 +136,11 @@ export default function TechnicianDashboard() {
   return (
     <div className="space-y-6">
       {/* Header */}
+      <h1 className="text-xl border-b border-gray-400 inline font-semibold text-slate-900 dark:text-slate-100">
+        Technician Dashboard
+      </h1>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
+        <div>        
           <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
             Schedule
           </h1>

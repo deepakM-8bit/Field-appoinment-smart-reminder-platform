@@ -1,6 +1,6 @@
 import { Outlet, Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import Navbar from "../components/Navbar";
+import ThemeToggle from "../components/ThemeToggle";
 
 /* ---------- Reusable NavLink (DECLARED OUTSIDE) ---------- */
 function AdminNavLink({ to, children, onClick }) {
@@ -21,7 +21,9 @@ export default function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const logout = () => {
-    localStorage.clear();
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
+    localStorage.removeItem("user");
     navigate("/");
   };
 
@@ -87,8 +89,8 @@ export default function AdminLayout() {
       {/* Main content */}
       <div className="flex flex-1 flex-col">
         {/* Top bar (mobile) */}
-        <header className="flex items-center justify-between border-b border-gray-200 bg-white px-4 py-3 shadow-sm dark:border-slate-800 dark:bg-slate-950 lg:hidden">
-          {/* <Link
+        <header className="flex items-center justify-between border-b border-gray-200 bg-white px-4 py-3 shadow-sm dark:border-slate-800 dark:bg-slate-950 ">
+          <Link
               to="/"
               onClick={() => setSidebarOpen(false)}
               className="flex items-center gap-2 min-w-0"
@@ -104,14 +106,16 @@ export default function AdminLayout() {
                   Service Workflow Platform
                 </p>
               </div>
-          </Link> */}
-
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="rounded-md text-2xl p-2 text-slate-700 hover:bg-gray-100 dark:text-slate-200 dark:hover:bg-slate-800"
-          >
-            ☰
-          </button>
+          </Link>
+          <div className="py-auto">
+            <ThemeToggle />
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="lg:hidden rounded-md text-2xl p-2 text-slate-700 hover:bg-gray-100 dark:text-slate-200 dark:hover:bg-slate-800"
+            >
+              ☰
+            </button>
+          </div>  
         </header>
 
         <main className="flex-1 p-4 lg:p-6">

@@ -369,28 +369,9 @@ export default function Home() {
       {/* ---------------- Footer ---------------- */}
       <footer
         id="footer"
-        className="border-t border-slate-200 py-10 dark:border-slate-800"
       >
         <Container>
-          <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="text-sm font-bold text-slate-900 dark:text-white">
-                Field Appointment System
-              </p>
-              <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
-                End-to-end appointment management for diagnosis and repair services.
-              </p>
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              <Pill>Smart Scheduling</Pill>
-              <Pill>OTP Trust</Pill>
-              <Pill>Auto Reminders</Pill>
-              <Pill>Admin Control</Pill>
-            </div>
-          </div>
-
-          <div className="mt-8 flex flex-col gap-2 border-t border-slate-200 pt-6 text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-2 border-t border-slate-200 py-10 text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400 sm:flex-row sm:items-center sm:justify-between">
             <p>© {year} Field Appointment Platform. All rights reserved.</p>
             <p className="text-xs">Built by Deepak • Real-world service automation</p>
           </div>

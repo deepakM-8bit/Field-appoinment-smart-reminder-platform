@@ -1,11 +1,14 @@
-import { Outlet, useNavigate } from "react-router-dom";
+import { Outlet, useNavigate, Link } from "react-router-dom";
+import ThemeToggle from "../components/ThemeToggle";
 
 export default function TechnicianLayout() {
   const navigate = useNavigate();
 
   const logout = () => {
-    localStorage.clear();
-    navigate("/tech-login");
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
+    localStorage.removeItem("user");
+    navigate("/");
   };
 
   return (
@@ -14,22 +17,24 @@ export default function TechnicianLayout() {
       <header className="sticky top-0 z-40 border-b border-gray-200 bg-white/95 backdrop-blur px-4 py-3 dark:border-slate-800 dark:bg-slate-950/80">
         <div className="mx-auto flex max-w-6xl items-center justify-between">
           {/* Left */}
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600/10 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300">
-              🛠️
+          <Link to="/technician" className="flex items-center gap-3">
+            <div className="h-9 w-9 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold shrink-0">
+              FA
             </div>
             <div className="leading-tight">
-              <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                Technician Panel
+              <p className="truncate text-sm font-bold text-gray-900 dark:text-white">
+                Field Appointment
               </p>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                Manage your assigned appointments
+              <p className="truncate text-[11px] text-gray-500 dark:text-gray-400">
+                Service workflow platform
               </p>
             </div>
-          </div>
+          </Link>
 
           {/* Right */}
           <div className="flex items-center gap-3">
+            <ThemeToggle />
+
             <button
               onClick={logout}
               className="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white hover:bg-red-700"
