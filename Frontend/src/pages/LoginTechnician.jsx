@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import api from "../services/api.js";
 import { useNavigate } from "react-router-dom";
+import Navbar from "../components/Navbar.jsx";
 
 export default function LoginTechnician() {
   const navigate = useNavigate();
@@ -55,8 +56,9 @@ export default function LoginTechnician() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4 dark:bg-slate-950">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-slate-50 flex flex-col px-4 dark:bg-slate-950">
+      <Navbar variant="minimal" />
+      <div className="w-full max-w-md m-auto">
         {/* Brand / Header */}
         <div className="mb-6 text-center">
           <p className="text-xs font-semibold tracking-wide text-blue-600 dark:text-blue-400">
