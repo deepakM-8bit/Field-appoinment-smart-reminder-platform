@@ -1,5 +1,6 @@
 import { Outlet, Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import Navbar from "../components/Navbar";
 
 /* ---------- Reusable NavLink (DECLARED OUTSIDE) ---------- */
 function AdminNavLink({ to, children, onClick }) {
@@ -87,13 +88,27 @@ export default function AdminLayout() {
       <div className="flex flex-1 flex-col">
         {/* Top bar (mobile) */}
         <header className="flex items-center justify-between border-b border-gray-200 bg-white px-4 py-3 shadow-sm dark:border-slate-800 dark:bg-slate-950 lg:hidden">
-          <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-            Admin Panel
-          </span>
+          {/* <Link
+              to="/"
+              onClick={() => setSidebarOpen(false)}
+              className="flex items-center gap-2 min-w-0"
+            >
+              <div className="h-9 w-9 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold shrink-0">
+                FA
+              </div>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-bold text-gray-900 dark:text-white">
+                  Field Appointment
+                </p>
+                <p className="truncate text-[11px] text-gray-500 dark:text-gray-400">
+                  Service Workflow Platform
+                </p>
+              </div>
+          </Link> */}
 
           <button
             onClick={() => setSidebarOpen(true)}
-            className="rounded-md p-2 text-slate-700 hover:bg-gray-100 dark:text-slate-200 dark:hover:bg-slate-800"
+            className="rounded-md text-2xl p-2 text-slate-700 hover:bg-gray-100 dark:text-slate-200 dark:hover:bg-slate-800"
           >
             ☰
           </button>

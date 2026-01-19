@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import ThemeToggle from "./ThemeToggle";
 
 /* ---------------- Helpers ---------------- */
 function safeScrollTo(id) {
@@ -49,25 +50,6 @@ export default function Navbar({ variant = "full" }) {
     }
   }, [drawerOpen]);
 
-  /* ---------------- Theme Toggle ---------------- */
-  const [theme, setTheme] = useState(() => {
-    const saved = localStorage.getItem("theme");
-    return saved === "dark" ? "dark" : "light";
-  });
-
-  useEffect(() => {
-    const root = document.documentElement;
-    if (theme === "dark") {
-      root.classList.add("dark");
-    } else {
-      root.classList.remove("dark");
-    }
-    localStorage.setItem("theme", theme);
-  }, [theme]);
-
-  const emoji = useMemo(() => (theme === "dark" ? "☀️" : "🌙"), [theme]);
-  const toggleTheme = useCallback(() => setTheme((t) => (t === "dark" ? "light" : "dark")), []);
-
   /* ---------------- Scroll Handling ---------------- */
   const goToSection = useCallback((id) => {
     if (location.pathname === "/") {
@@ -96,7 +78,7 @@ export default function Navbar({ variant = "full" }) {
       <header className="sticky top-0 z-40 border-b border-gray-200 bg-white/90 backdrop-blur-sm dark:border-gray-800 dark:bg-gray-950/90">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
-            {/* Brand */}
+            {/* Brand Name */}
             <Link
               to="/"
               onClick={() => setDrawerOpen(false)}
@@ -134,13 +116,7 @@ export default function Navbar({ variant = "full" }) {
             {/* Right Side Controls */}
             <div className="flex items-center gap-2 shrink-0">
               {/* Theme Toggle */}
-              <button
-                onClick={toggleTheme}
-                aria-label="Toggle theme"
-                className="rounded-md border border-gray-200 bg-white px-2.5 py-2 text-sm hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:hover:bg-gray-800"
-              >
-                {emoji}
-              </button>
+                <ThemeToggle />
 
               {/* Desktop Login/Signup Buttons */}
               {variant === "full" && (isDesktop || isTablet) && (

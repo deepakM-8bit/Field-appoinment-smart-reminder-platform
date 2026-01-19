@@ -169,6 +169,15 @@ export default function LoginAdmin() {
                 </button>
               </div>
             </div>
+            <div className="flex mt-7 items-center justify-center">
+                <button
+                  type="button"
+                  onClick={() => navigate("/signup")}
+                  className="text-sm text-slate-500 dark:text-slate-400 hover:underline"
+                >
+                  Don't have an account? Sign up
+                </button>
+            </div>
           </div>
         </div>
 

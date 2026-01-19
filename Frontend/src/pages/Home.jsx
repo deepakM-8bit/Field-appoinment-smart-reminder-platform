@@ -96,7 +96,7 @@ export default function Home() {
 
                 <div className="mt-6 flex flex-col gap-3 sm:flex-row">
                   <button
-                    onClick={() => navigate("/login")}
+                    onClick={() => navigate("/signup")}
                     className="rounded-lg bg-blue-600 px-6 py-3 text-sm font-semibold text-white hover:bg-blue-700"
                   >
                     Open Admin Panel

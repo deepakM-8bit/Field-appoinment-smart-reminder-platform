@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import api from "../services/api.js";
 import { useNavigate } from "react-router-dom";
+import Navbar from "../components/Navbar.jsx";
 
 export default function Signup() {
   const navigate = useNavigate();
@@ -63,13 +64,10 @@ export default function Signup() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
-        {/* Brand / Header */}
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col px-4">
+      <Navbar variant="minimal" />
+      <div className="w-full max-w-md m-auto">
         <div className="mb-6 text-center">
-          <p className="text-xs font-semibold tracking-wide text-blue-600 dark:text-blue-400">
-            FIELD APPOINTMENT PLATFORM
-          </p>
           <h1 className="mt-2 text-2xl font-semibold text-slate-900 dark:text-slate-100">
             Create Admin Account
           </h1>
@@ -124,7 +122,7 @@ export default function Signup() {
                 </label>
                 <input
                   type="text"
-                  placeholder="Eg: Ace Services"
+                  placeholder="Eg: ABC Appliance Services"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   className="mt-1 w-full rounded-md border border-gray-200 dark:border-slate-700
