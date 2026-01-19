@@ -28,7 +28,6 @@ export default function Navbar({ variant = "full" }) {
   const isMobile = width < 770;
 
   /* ---------------- Drawer Logic ---------------- */
-  // Close drawer on route change - FIXED: Proper async implementation
   useEffect(() => {
     let timeoutId;
     if (drawerOpen) {

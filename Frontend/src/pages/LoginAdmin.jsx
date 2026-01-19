@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import api from "../services/api.js";
 import { useNavigate } from "react-router-dom";
+import Navbar from "../components/Navbar.jsx";
 
 export default function LoginAdmin() {
   const navigate = useNavigate();
@@ -41,13 +42,11 @@ export default function LoginAdmin() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col px-4">
+      <Navbar variant="minimal" />
+      <div className="w-full max-w-md m-auto">
         {/* Brand / Header */}
         <div className="mb-6 text-center">
-          <p className="text-xs font-semibold tracking-wide text-blue-600 dark:text-blue-400">
-            FIELD APPOINTMENT PLATFORM
-          </p>
           <h1 className="mt-2 text-2xl font-semibold text-slate-900 dark:text-slate-100">
             Admin Login
           </h1>
