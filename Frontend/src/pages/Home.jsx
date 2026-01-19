@@ -77,17 +77,10 @@ export default function Home() {
                         dark:from-blue-950/40 dark:via-slate-950 dark:to-slate-950" />
 
         <Container>
-          <div className="py-14 sm:py-20">
+          <div className="py-5 sm:py-20">
             <div className="flex flex-col gap-10 lg:flex-row lg:items-center lg:justify-between">
-              {/* Text */}
               <div className="max-w-xl">
-                <div className="flex flex-wrap items-center gap-2">
-                  <Pill>Smart Technician Allocation</Pill>
-                  <Pill>Customer Verified Service</Pill>
-                  <Pill>Automated Reminders</Pill>
-                </div>
-
-                <h1 className="mt-5 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-5xl dark:text-white">
+                <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-5xl dark:text-white">
                   Run field service operations
                   <span className="block text-blue-600 dark:text-blue-400">
                     faster, safer, and more organized
@@ -399,7 +392,7 @@ export default function Home() {
 
           <div className="mt-8 flex flex-col gap-2 border-t border-slate-200 pt-6 text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400 sm:flex-row sm:items-center sm:justify-between">
             <p>© {year} Field Appointment Platform. All rights reserved.</p>
-            <p className="text-xs">Built by Ace • Real-world service automation</p>
+            <p className="text-xs">Built by Deepak • Real-world service automation</p>
           </div>
         </Container>
       </footer>

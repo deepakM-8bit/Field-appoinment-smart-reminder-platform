@@ -61,9 +61,6 @@ export default function LoginTechnician() {
       <div className="w-full max-w-md m-auto">
         {/* Brand / Header */}
         <div className="mb-6 text-center">
-          <p className="text-xs font-semibold tracking-wide text-blue-600 dark:text-blue-400">
-            FIELD APPOINTMENT PLATFORM
-          </p>
           <h1 className="mt-2 text-2xl font-semibold text-slate-900 dark:text-slate-100">
             Technician Login
           </h1>
