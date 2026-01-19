@@ -286,9 +286,6 @@ export default function Navbar({ variant = "full" }) {
 
               {/* Footer Note */}
               <div className="pt-6 border-t border-gray-200 dark:border-gray-700">
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Smart scheduling • OTP verification • Automated reminders
-                </p>
                 <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
                   Field Appointment v1.0
                 </p>
