@@ -1,20 +1,20 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://localhost:3000", // backend URL
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:3000", // backend URL
 });
 
 api.interceptors.request.use((config) => {
-const path = window.location.pathname;
+  const path = window.location.pathname;
 
-let token = null;
+  let token = null;
 
-if(path.startsWith("/admin")) token = localStorage.getItem("adminToken");
-if(path.startsWith("/technician")) token = localStorage.getItem("techToken");
+  if (path.startsWith("/admin")) token = localStorage.getItem("adminToken");
+  if (path.startsWith("/technician")) token = localStorage.getItem("techToken");
 
-if(token) {
-  config.headers.Authorization = `Bearer ${token}`;
-}
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
   return config;
 });
 
