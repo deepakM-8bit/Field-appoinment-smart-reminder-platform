@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import api from "../../services/api.js";
 
 /* ---------------- Helpers ---------------- */
@@ -13,11 +13,15 @@ const to12Hour = (time) => {
   return `${hour}:${m.toString().padStart(2, "0")} ${period}`;
 };
 
-const formatDateDDMMYYYY = (yyyyMMdd) => {
-  if (!yyyyMMdd) return "-";
-  const [y, m, d] = String(yyyyMMdd).split("T")[0].split("-");
+const formatDateDDMMYYYY = (dateVal) => {
+  if (!dateVal) return "-";
+  const date = new Date(dateVal);
+  const d = String(date.getUTCDate()).padStart(2, "0");
+  const m = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const y = date.getUTCFullYear();
   return `${d}-${m}-${y}`;
 };
+
 
 const prettifyStatus = (status) => String(status || "").replaceAll("_", " ");
 
@@ -124,11 +128,15 @@ export default function AppointmentDetail() {
 
   const [submitting, setSubmitting] = useState(false);
 
+  const [searchParams] = useSearchParams();
+  const date = searchParams.get("date");
+
+
   const fetchAppointment = useCallback(async () => {
     setLoading(true);
     try {
       const res = await api.get(`/api/appointments/${id}`);
-      setAppointment(res.data);
+      setAppointment({...res.data});
     } catch (err) {
       console.error("Fetch appointment error:", err);
       setMessageType("error");
@@ -181,14 +189,14 @@ export default function AppointmentDetail() {
       let activeIndex = 0;
 
       if (status === "repair_scheduled") activeIndex = 0;
-      if (status === "repair_in_progress") activeIndex = 2;
+      if (status === "repair_in_progress") activeIndex = otpRequested ? 2 : 1;
       if (status === "repair_completed") activeIndex = 3;
 
       return { steps, activeIndex };
     }
 
     return { steps: [], activeIndex: 0 };
-  }, [appointment]);
+  }, [appointment, otpRequested]);
 
   /* ---------------- OTP Actions ---------------- */
   const requestOtpDiagnosis = async () => {
@@ -392,7 +400,7 @@ export default function AppointmentDetail() {
         </div>
 
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => navigate(`/technician/dashboard?date=${date || ""}`)}
           className="rounded-md bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-200
                      dark:bg-slate-800/60 dark:text-slate-200 dark:hover:bg-slate-800"
         >

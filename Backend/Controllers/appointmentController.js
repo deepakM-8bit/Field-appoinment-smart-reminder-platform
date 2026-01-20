@@ -459,7 +459,7 @@ export const approveRepair = async (req,res) => {
                  FROM appointments
                  WHERE technician_id = $1
                   AND scheduled_date = $2
-                  AND status IN ('repair_scheduled','reapir_in_progress')
+                  AND status IN ('repair_scheduled','repair_in_progress')
                   `,
                   [technicianId,diag.scheduled_date]
             );

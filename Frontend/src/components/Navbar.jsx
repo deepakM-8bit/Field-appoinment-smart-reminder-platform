@@ -75,7 +75,7 @@ export default function Navbar({ variant = "full" }) {
 
   return (
     <>
-      <header className="sticky top-0 z-40 border-b border-gray-200 bg-white/90 backdrop-blur-sm dark:border-gray-800 dark:bg-gray-950/90">
+      <header className="fixed left-0 right-0 top-0 z-40 border-b border-gray-200 bg-white/90 backdrop-blur-sm dark:border-gray-800 dark:bg-gray-950/90">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             {/* Brand Name */}
@@ -88,10 +88,10 @@ export default function Navbar({ variant = "full" }) {
                 FA
               </div>
               <div className="min-w-0">
-                <p className="truncate text-sm font-bold text-gray-900 dark:text-white">
+                <p className="truncate text-lg font-bold text-gray-900 dark:text-white">
                   Field Appointment
                 </p>
-                <p className="truncate text-[11px] text-gray-500 dark:text-gray-400">
+                <p className="truncate text-[12px] text-gray-500 dark:text-gray-400">
                   Service Workflow Platform
                 </p>
               </div>

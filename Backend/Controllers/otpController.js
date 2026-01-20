@@ -101,6 +101,7 @@ export const requestOtp = (type) => async (req, res) => {
 export const verifyOtp = (type) => async (req, res) => {
   const { otp, final_cost } = req.body;
   const appointmentId = req.params.id;
+  const technicianId = req.user.id;
   const cfg = OTP_CONFIG[type];
 
   const client = await pool.connect();
@@ -108,16 +109,33 @@ export const verifyOtp = (type) => async (req, res) => {
   try {
     await client.query("BEGIN");
 
+    const apptCheck = await client.query(
+      `
+      SELECT id, owner_id, status
+      FROM appointments
+      WHERE id = $1
+        AND technician_id = $2
+        AND status = $3
+      `,
+      [appointmentId, technicianId, cfg.allowedStatus]
+    );
+
+    if (!apptCheck.rows.length) {
+      await client.query("ROLLBACK");
+      return res.status(400).json({ message: "Invalid appointment state"});
+    }
+
     const otpRes = await client.query(
       `
-      SELECT *
-      FROM otp_codes
-      WHERE appointment_id = $1
-        AND otp_code = $2
-        AND type = $3
-        AND used = false
-        AND expires_at > now()
-      ORDER BY created_at DESC
+      SELECT o.*, a.owner_id, a.technician_id
+      FROM otp_codes o
+      JOIN appointments a ON a.id = o.appointment_id
+      WHERE o.appointment_id = $1
+        AND o.otp_code = $2
+        AND o.type = $3
+        AND o.used = false
+        AND o.expires_at > now()
+      ORDER BY o.created_at DESC
       LIMIT 1
       `,
       [appointmentId, otp, type]
@@ -132,28 +150,27 @@ export const verifyOtp = (type) => async (req, res) => {
       [otpRes.rows[0].id]
     );
 
-    if (cfg.nextStatus) {
-      await client.query(
-        `
-        UPDATE appointments
-        SET status = $1,
-            updated_at = now()
-        WHERE id = $2
-        `,
-        [cfg.nextStatus, appointmentId]
-      );
-    }
-
     if (type === "payment") {
       await client.query(
         `
         UPDATE appointments
-        SET payment_status = 'paid',
+        SET status = 'repair_completed',
+            payment_status = 'paid',
             final_cost = $1,
             updated_at = now()
         WHERE id = $2
         `,
         [final_cost, appointmentId]
+      );
+    }else {
+      await client.query(
+        `
+        UPDATE appointments
+        SET status = $1,
+          updated_at = now()
+        WHERE id = $2
+        `,
+        [cfg.nextStatus, appointmentId]
       );
     }
 
@@ -163,16 +180,16 @@ export const verifyOtp = (type) => async (req, res) => {
       VALUES ($1,$2,$3,$4,$5)
       `,
       [
-        otpRes.rows[0].owner_id,
+        apptCheck.rows[0].owner_id,
         appointmentId,
-        req.user.id,
+        technicianId,
         cfg.logEventVerify,
         `OTP verified for ${type}`
       ]
     );
 
     await client.query("COMMIT");
-    res.json({ message: "OTP verified successfully" });
+    return res.json({ message: "OTP verified successfully" });
 
   } catch (err) {
     await client.query("ROLLBACK");

@@ -66,7 +66,7 @@ export default function Signup() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col px-4">
       <Navbar variant="minimal" />
-      <div className="w-full max-w-md m-auto">
+      <div className="w-full max-w-md mx-auto mt-16">
         <div className="mb-6 text-center">
           <h1 className="mt-2 text-2xl font-semibold text-slate-900 dark:text-slate-100">
             Create Admin Account

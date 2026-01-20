@@ -8,7 +8,7 @@ function AdminNavLink({ to, children, onClick }) {
     <Link
       to={to}
       onClick={onClick}
-      className="block rounded-md px-3 py-2 text-sm font-medium text-slate-200 hover:bg-slate-800 hover:text-white"
+      className="block rounded-md px-3 py-2 text-sm font-medium text-gray-900 dark:text-white hover:bg-slate-800 hover:text-white"
     >
       {children}
     </Link>
@@ -31,12 +31,12 @@ export default function AdminLayout() {
     <div className="min-h-screen flex bg-gray-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 w-64 bg-slate-900 transform transition-transform duration-200 ease-in-out
-        ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
+        className={`fixed bg-gray-50 pt-16 dark:bg-slate-950 dark:text-slate-100 inset-y-0 left-0 z-40 w-64 transform transition-transform 
+          duration-200 ease-in-out ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
         lg:static lg:translate-x-0`}
       >
         <div className="flex h-full flex-col">
-          <div className="px-6 py-4 text-lg font-semibold text-white">
+          <div className="px-6 py-4 text-lg font-semibold text-gray-900 dark:text-white">
             Admin Panel
           </div>
 
@@ -89,7 +89,7 @@ export default function AdminLayout() {
       {/* Main content */}
       <div className="flex flex-1 flex-col">
         {/* Top bar (mobile) */}
-        <header className="flex items-center justify-between border-b border-gray-200 bg-white px-4 py-3 shadow-sm dark:border-slate-800 dark:bg-slate-950 ">
+        <header className="fixed z-50 top-0 left-0 right-0 flex items-center justify-between border-b border-gray-200 px-4 py-3 shadow-sm bg-white/90 backdrop-blur-sm dark:border-gray-800 dark:bg-gray-950/90 ">
           <Link
               to="/"
               onClick={() => setSidebarOpen(false)}
@@ -110,15 +110,15 @@ export default function AdminLayout() {
           <div className="py-auto">
             <ThemeToggle />
             <button
-              onClick={() => setSidebarOpen(true)}
-              className="lg:hidden rounded-md text-2xl p-2 text-slate-700 hover:bg-gray-100 dark:text-slate-200 dark:hover:bg-slate-800"
+              onClick={() => sidebarOpen ? setSidebarOpen(false) : setSidebarOpen(true)}
+              className="lg:hidden rounded-md text-2xl m-1 p-1 text-slate-700 hover:bg-gray-100 dark:text-slate-200 dark:hover:bg-slate-800"
             >
-              ☰
+              {sidebarOpen ? "✕" : "☰"}    
             </button>
           </div>  
         </header>
 
-        <main className="flex-1 p-4 lg:p-6">
+        <main className="flex-1 mt-11 pt-16 p-4 lg:p-6">
           <Outlet />
         </main>
       </div>

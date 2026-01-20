@@ -1,11 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import api from "../../services/api.js";
 
 /* ---------------- Helpers ---------------- */
-const formatDateDDMMYYYY = (yyyyMMdd) => {
-  if (!yyyyMMdd) return "-";
-  const [y, m, d] = yyyyMMdd.split("-");
+const formatDateDDMMYYYY = (dateVal) => {
+  if (!dateVal) return "-";
+  const date = new Date(dateVal);
+  const d = String(date.getUTCDate()).padStart(2, "0");
+  const m = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const y = date.getUTCFullYear();
   return `${d}-${m}-${y}`;
 };
 
@@ -72,9 +75,16 @@ function TypeBadge({ type }) {
 /* ---------------- Component ---------------- */
 export default function TechnicianDashboard() {
   const [appointments, setAppointments] = useState([]);
-  const [selectedDate, setSelectedDate] = useState(
-    new Date().toISOString().split("T")[0]
-  );
+  const today = new Date().toISOString().split("T")[0];
+
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const selectedDate = searchParams.get("date") || today;
+
+  const setSelectedDate = (newDate) => {
+    setSearchParams({ date: newDate });
+  };
+
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -118,8 +128,6 @@ export default function TechnicianDashboard() {
     return { total, diagnosis, repair, completed };
   }, [appointments]);
 
-  const today = new Date().toISOString().split("T")[0];
-
   /* ---------- UI states ---------- */
   if (loading) {
     return (
@@ -159,7 +167,7 @@ export default function TechnicianDashboard() {
               type="date"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="text-sm text-slate-700 focus:outline-none dark:bg-transparent dark:text-slate-200"
+              className="text-sm text-slate-50 focus:outline-none dark:[color-scheme:dark] dark:text-slate-200"
             />
           </div>
 
@@ -251,7 +259,7 @@ export default function TechnicianDashboard() {
               {appointments.map((a) => (
                 <button
                   key={a.id}
-                  onClick={() => navigate(`/technician/appointments/${a.id}`)}
+                  onClick={() => navigate(`/technician/appointments/${a.id}?date=${selectedDate}`)}
                   className="w-full text-left rounded-lg border border-gray-200 bg-white p-4 shadow-sm hover:bg-slate-100 transition
                              dark:border-slate-800 dark:bg-slate-950/40 dark:hover:bg-slate-800/40"
                 >
