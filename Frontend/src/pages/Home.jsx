@@ -181,7 +181,7 @@ export default function Home() {
       {/* ---------------- Features ---------------- */}
       <section
         id="features"
-        className="py-14 sm:py-20 mt-10 border-t border-slate-300 dark:lg:border-slate-800"
+        className="py-14 sm:py-20 mt-10 border-t border-slate-300 dark:border-slate-800"
       >
         <Container>
           <div className="max-w-2xl">
