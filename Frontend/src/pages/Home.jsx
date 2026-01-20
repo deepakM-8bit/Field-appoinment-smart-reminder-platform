@@ -66,10 +66,10 @@ export default function Home() {
         <div className="absolute inset-0 -z-10 bg-gradient-to-b from-blue-50 via-white to-white dark:from-blue-950/40 dark:via-slate-950 dark:to-slate-950" />
 
         <Container>
-          <div className="sm:py-20">
-            <div className="flex flex-col gap-10 lg:flex-row lg:items-center lg:justify-between">
+          <div className="pt-20 sm:py-20">
+            <div className="flex flex-col items-start gap-10 lg:flex-row lg:items-center lg:justify-between">
               {/* Copy */}
-              <div className="max-w-xl">
+              <div className="max-w-2xl">
                 <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-5xl dark:text-white">
                   Run field service operations
                   <span className="mt-2 block text-blue-600 dark:text-blue-400">
@@ -179,7 +179,10 @@ export default function Home() {
       </section>
 
       {/* ---------------- Features ---------------- */}
-      <section id="features" className="py-14 sm:py-20">
+      <section
+        id="features"
+        className="py-14 sm:py-20 mt-10 border-t border-slate-300 dark:lg:border-slate-800"
+      >
         <Container>
           <div className="max-w-2xl">
             <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
@@ -230,7 +233,7 @@ export default function Home() {
       {/* ---------------- How it works ---------------- */}
       <section
         id="how"
-        className="border-t border-slate-200 py-14 dark:border-slate-800 sm:py-20"
+        className="border-t border-slate-300 py-14 dark:border-slate-800 sm:py-20"
       >
         <Container>
           <div className="max-w-2xl">

@@ -24,8 +24,8 @@ export default function Navbar({ variant = "full" }) {
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
-  const isDesktop = width >= 1030;
-  const isTablet = width >= 770 && width < 1030;
+  const isDesktop = width >= 1055;
+  const isTablet = width >= 770 && width < 1054;
   const isMobile = width < 770;
 
   /* ---------------- Drawer Logic ---------------- */
@@ -51,14 +51,17 @@ export default function Navbar({ variant = "full" }) {
   }, [drawerOpen]);
 
   /* ---------------- Scroll Handling ---------------- */
-  const goToSection = useCallback((id) => {
-    if (location.pathname === "/") {
-      safeScrollTo(id);
-      return;
-    }
-    navigate("/");
-    setTimeout(() => safeScrollTo(id), 200);
-  }, [location.pathname, navigate]);
+  const goToSection = useCallback(
+    (id) => {
+      if (location.pathname === "/") {
+        safeScrollTo(id);
+        return;
+      }
+      navigate("/");
+      setTimeout(() => safeScrollTo(id), 200);
+    },
+    [location.pathname, navigate],
+  );
 
   const closeThen = useCallback((fn) => {
     setDrawerOpen(false);
@@ -66,12 +69,15 @@ export default function Navbar({ variant = "full" }) {
   }, []);
 
   // Navigation items
-  const navItems = useMemo(() => [
-    { id: "features", label: "Features" },
-    { id: "how", label: "How it works" },
-    { id: "security", label: "Security" },
-    { id: "footer", label: "Contact" },
-  ], []);
+  const navItems = useMemo(
+    () => [
+      { id: "features", label: "Features" },
+      { id: "how", label: "How it works" },
+      { id: "security", label: "Security" },
+      { id: "footer", label: "Contact" },
+    ],
+    [],
+  );
 
   return (
     <>
@@ -116,7 +122,7 @@ export default function Navbar({ variant = "full" }) {
             {/* Right Side Controls */}
             <div className="flex items-center gap-2 shrink-0">
               {/* Theme Toggle */}
-                <ThemeToggle />
+              <ThemeToggle />
 
               {/* Desktop Login/Signup Buttons */}
               {variant === "full" && (isDesktop || isTablet) && (
@@ -160,9 +166,7 @@ export default function Navbar({ variant = "full" }) {
       {/* MOBILE/TABLET DRAWER */}
       <div
         className={`fixed inset-0 z-50 transition-all duration-300 ease-in-out ${
-          drawerOpen
-            ? "opacity-100 visible"
-            : "opacity-0 invisible"
+          drawerOpen ? "opacity-100 visible" : "opacity-0 invisible"
         }`}
         style={{ zIndex: 99999 }}
       >
