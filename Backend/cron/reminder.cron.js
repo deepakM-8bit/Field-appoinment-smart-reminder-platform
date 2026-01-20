@@ -61,7 +61,7 @@ cron.schedule("* * * * *", async () => {
       if (r.attempts + 1 >= 5) {
         await notifyAdmin({
           ownerId: r.meta.owner_id,
-          subject: "Reminder delivered failed",
+          subject: "Reminder delivery failed",
           message: `Reminder ID ${r.id} failed 5 times and has been stopped. 
                     Please review.`,
         });
