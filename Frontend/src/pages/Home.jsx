@@ -428,7 +428,7 @@ export default function Home() {
                   <p className="flex items-center gap-2">
                     <span>📧</span>
                     <a
-                      href="mailto:fieldappointment.support@gmail.com"
+                      href="mailto:deepakm.code@gmail.com"
                       className="hover:text-blue-600 dark:hover:text-blue-400"
                     >
                       deepakm.code@gmail.com
