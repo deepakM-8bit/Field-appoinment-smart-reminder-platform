@@ -1,75 +1,75 @@
-import cron from 'node-cron';
-import pool from '../db.js';
+import cron from "node-cron";
+import pool from "../db.js";
 import { sendTechnicianReminder } from "../utils/messages/technicianReminder.js";
 import { sendCustomerReminder } from "../utils/messages/customerReminder.js";
-import { notifyAdmin } from '../utils/notifyAdmin.js';
-
+import { notifyAdmin } from "../utils/notifyAdmin.js";
 
 cron.schedule("* * * * *", async () => {
-    const { rows } = await pool.query(
-        "SELECT * FROM reminders WHERE send_at <= now() AND status= 'pending' AND attempts < 5"
-    );
+  const { rows } = await pool.query(
+    "SELECT * FROM reminders WHERE send_at <= now() AND status= 'pending' AND attempts < 5",
+  );
 
-    for (const r of rows) {
-        try {
-            if (r.type === "technician_reminder" ||
-                r.type === "technician_repair_reminder"
-            ) {
-                await sendTechnicianReminder({
-                    technicianEmail: r.meta.technician_email,
-                    technicianName: r.meta.technician_name,
-                    businessName: r.meta.business_name,
-                    customerName: r.meta.customer_name,
-                    customerPhone: r.meta.customer_phone,
-                    customerAddress: r.meta.customer_address,
-                    scheduledDate: r.meta.scheduled_date,
-                    scheduledTime: r.meta.scheduled_time
-                });
-            }
+  for (const r of rows) {
+    try {
+      if (
+        r.type === "technician_reminder" ||
+        r.type === "technician_repair_reminder"
+      ) {
+        await sendTechnicianReminder({
+          technicianEmail: r.meta.technician_email,
+          technicianName: r.meta.technician_name,
+          businessName: r.meta.business_name,
+          customerName: r.meta.customer_name,
+          customerPhone: r.meta.customer_phone,
+          customerAddress: r.meta.customer_address,
+          scheduledDate: r.meta.scheduled_date,
+          scheduledTime: r.meta.scheduled_time,
+        });
+      }
 
-            if (r.type === "customer_reminder" ||
-                r.type === "customer_repair_reminder"
-            ) {
-                if(!r.meta.customer_email) {
-                    await pool.query(
-                        "UPDATE reminders SET status='skipped' WHERE id=$1",
-                        [r.id]
-                    );
-                    continue;
-                }
-
-                await sendCustomerReminder({
-                    customerEmail: r.meta.customer_email,
-                    customerName: r.meta.customer_name,
-                    businessName: r.meta.business_name,
-                    technicianName: r.meta.technician_name,
-                    technicianPhone: r.meta.technician_phone,
-                    scheduledDate: r.meta.scheduled_date,
-                    scheduledTime: r.meta.scheduled_time 
-                });
-            }
-
-            await pool.query(
-                "UPDATE reminders SET status='sent', attempts=attempts+1 WHERE id=$1",
-                [r.id]
-            );
-            
-            console.log("CRON picked reminder:", r.id, r.type);
-
-        }catch(err){
-            if(r.attempts + 1 >= 5) {
-                await notifyAdmin({
-                    ownerId: r.meta.owner_id,
-                    subject: "Reminder delivered failed",
-                    message: `Reminder ID ${r.id} failed 5 times and has been stopped. 
-                    Please review.`
-                });
-            }
-            console.error("reminder failed:", err.message);
-            await pool.query(
-                "UPDATE reminders SET attempts=attempts+1 WHERE id=$1",
-                [r.id]
-            );
+      if (
+        r.type === "customer_reminder" ||
+        r.type === "customer_repair_reminder"
+      ) {
+        if (!r.meta.customer_email) {
+          await pool.query(
+            "UPDATE reminders SET status='skipped' WHERE id=$1",
+            [r.id],
+          );
+          continue;
         }
+
+        await sendCustomerReminder({
+          customerEmail: r.meta.customer_email,
+          customerName: r.meta.customer_name,
+          businessName: r.meta.business_name,
+          technicianName: r.meta.technician_name,
+          technicianPhone: r.meta.technician_phone,
+          scheduledDate: r.meta.scheduled_date,
+          scheduledTime: r.meta.scheduled_time,
+        });
+      }
+
+      await pool.query(
+        "UPDATE reminders SET status='sent', attempts=attempts+1 WHERE id=$1",
+        [r.id],
+      );
+
+      console.log("CRON picked reminder:", r.id, r.type);
+    } catch (err) {
+      console.error("cron DB error:", err.message);
+      if (r.attempts + 1 >= 5) {
+        await notifyAdmin({
+          ownerId: r.meta.owner_id,
+          subject: "Reminder delivered failed",
+          message: `Reminder ID ${r.id} failed 5 times and has been stopped. 
+                    Please review.`,
+        });
+      }
+      console.error("reminder failed:", err.message);
+      await pool.query("UPDATE reminders SET attempts=attempts+1 WHERE id=$1", [
+        r.id,
+      ]);
     }
+  }
 });
