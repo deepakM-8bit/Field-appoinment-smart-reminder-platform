@@ -14,7 +14,7 @@ const port = process.env.PORT || 3000;
 
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN,
+    origin: process.env.CORS_ORIGIN || "*",
     credentials: true,
   }),
 );
@@ -30,5 +30,5 @@ app.use("/api/appointments-list", appointmentListRouter);
 app.use("/api/auth", authOtpRouter);
 
 app.listen(port, () => {
-  console.log(`server is running on port: http://localhost:${port}`);
+  console.log(`server is running on port: ${port}`);
 });
