@@ -27,7 +27,7 @@ export const requestOtp = (type) => async (req, res) => {
         AND a.technician_id = $2
         AND a.status = $3
       `,
-      [appointmentId, technicianId, cfg.allowedStatus]
+      [appointmentId, technicianId, cfg.allowedStatus],
     );
 
     if (!apptRes.rows.length) {
@@ -42,16 +42,15 @@ export const requestOtp = (type) => async (req, res) => {
         AND type = $2
         AND created_at > now() - interval '5 minutes'
       `,
-      [appointmentId, type]
+      [appointmentId, type],
     );
 
     if (Number(recentOtpCount.rows[0].count) >= 3) {
-      
       await notifyAdmin({
         ownerId: apptRes.rows[0].owner_id,
         subject: "OTP abuse detected",
         message: `Multiple OTP requests detected for appointment ID ${appointmentId}.
-         Technician ID: ${technicianId}.`
+         Technician ID: ${technicianId}.`,
       });
 
       return res.status(429).json({ message: "Too many OTP requests" });
@@ -64,13 +63,13 @@ export const requestOtp = (type) => async (req, res) => {
       INSERT INTO otp_codes (appointment_id, otp_code, type, expires_at)
       VALUES ($1,$2,$3, now() + interval '5 minutes')
       `,
-      [appointmentId, otp, type]
+      [appointmentId, otp, type],
     );
 
     await sendEmail({
       to: apptRes.rows[0].customer_email,
       subject: cfg.emailSubject,
-      html: `<p>Your OTP is:</p><h2>${otp}</h2>`
+      html: `<p>Your OTP is:</p><h2>${otp}</h2>`,
     });
 
     await client.query(
@@ -83,16 +82,15 @@ export const requestOtp = (type) => async (req, res) => {
         appointmentId,
         technicianId,
         cfg.logEventSend,
-        `OTP sent for ${type}`
-      ]
+        `OTP sent for ${type}`,
+      ],
     );
 
     await client.query("COMMIT");
-    res.json({ message: "OTP sent successfully" });
-
+    return res.json({ message: "OTP sent successfully" });
   } catch (err) {
     await client.query("ROLLBACK");
-    res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({ message: "Internal server error" });
   } finally {
     client.release();
   }
@@ -117,12 +115,12 @@ export const verifyOtp = (type) => async (req, res) => {
         AND technician_id = $2
         AND status = $3
       `,
-      [appointmentId, technicianId, cfg.allowedStatus]
+      [appointmentId, technicianId, cfg.allowedStatus],
     );
 
     if (!apptCheck.rows.length) {
       await client.query("ROLLBACK");
-      return res.status(400).json({ message: "Invalid appointment state"});
+      return res.status(400).json({ message: "Invalid appointment state" });
     }
 
     const otpRes = await client.query(
@@ -138,17 +136,16 @@ export const verifyOtp = (type) => async (req, res) => {
       ORDER BY o.created_at DESC
       LIMIT 1
       `,
-      [appointmentId, otp, type]
+      [appointmentId, otp, type],
     );
 
     if (!otpRes.rows.length) {
       return res.status(400).json({ message: "Invalid OTP" });
     }
 
-    await client.query(
-      `UPDATE otp_codes SET used=true WHERE id=$1`,
-      [otpRes.rows[0].id]
-    );
+    await client.query(`UPDATE otp_codes SET used=true WHERE id=$1`, [
+      otpRes.rows[0].id,
+    ]);
 
     if (type === "payment") {
       await client.query(
@@ -160,9 +157,9 @@ export const verifyOtp = (type) => async (req, res) => {
             updated_at = now()
         WHERE id = $2
         `,
-        [final_cost, appointmentId]
+        [final_cost, appointmentId],
       );
-    }else {
+    } else {
       await client.query(
         `
         UPDATE appointments
@@ -170,7 +167,7 @@ export const verifyOtp = (type) => async (req, res) => {
           updated_at = now()
         WHERE id = $2
         `,
-        [cfg.nextStatus, appointmentId]
+        [cfg.nextStatus, appointmentId],
       );
     }
 
@@ -184,13 +181,12 @@ export const verifyOtp = (type) => async (req, res) => {
         appointmentId,
         technicianId,
         cfg.logEventVerify,
-        `OTP verified for ${type}`
-      ]
+        `OTP verified for ${type}`,
+      ],
     );
 
     await client.query("COMMIT");
     return res.json({ message: "OTP verified successfully" });
-
   } catch (err) {
     await client.query("ROLLBACK");
     res.status(500).json({ message: "Internal server error" });
