@@ -4,8 +4,6 @@ dotenv.config();
 
 const { Pool } = pkg;
 
-console.log("DATABASE_URL loaded:", process.env.DATABASE_URL);
-
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false },

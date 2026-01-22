@@ -8,16 +8,33 @@ import appointmentRouter from "./Routers/appointmentRouter.js";
 import otpRouter from "./Routers/otpRouter.js";
 import appointmentListRouter from "./Routers/appointmentListRouter.js";
 import authOtpRouter from "./Routers/authOtpRouter.js";
+import { clearLine } from "readline";
 
 const app = express();
 const port = process.env.PORT || 3000;
 
+const allowedOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(",").map((o) => o.trim())
+  : [];
+
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN || "*",
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error("cors blocked for origin:" + origin));
+    },
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["content-Type", "Authorization"],
     credentials: false,
   }),
 );
+app.options(/.*/, cors());
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
