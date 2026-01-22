@@ -22,7 +22,6 @@ const formatDateDDMMYYYY = (dateVal) => {
   return `${d}-${m}-${y}`;
 };
 
-
 const prettifyStatus = (status) => String(status || "").replaceAll("_", " ");
 
 const getStatusBadgeClass = (status) => {
@@ -62,7 +61,9 @@ const getStatusBadgeClass = (status) => {
 function InfoRow({ label, value }) {
   return (
     <div className="flex items-start justify-between gap-4">
-      <span className="text-sm text-slate-500 dark:text-slate-400">{label}</span>
+      <span className="text-sm text-slate-500 dark:text-slate-400">
+        {label}
+      </span>
       <span className="text-sm font-medium text-slate-900 text-right dark:text-slate-100">
         {value}
       </span>
@@ -79,8 +80,8 @@ function Step({ title, active, done }) {
           done
             ? "bg-green-600 text-white border-green-600"
             : active
-            ? "bg-blue-600 text-white border-blue-600"
-            : "bg-white text-slate-500 border-slate-200 dark:bg-slate-950 dark:text-slate-400 dark:border-slate-700"
+              ? "bg-blue-600 text-white border-blue-600"
+              : "bg-white text-slate-500 border-slate-200 dark:bg-slate-950 dark:text-slate-400 dark:border-slate-700"
         }`}
       >
         {done ? "✓" : ""}
@@ -131,12 +132,11 @@ export default function AppointmentDetail() {
   const [searchParams] = useSearchParams();
   const date = searchParams.get("date");
 
-
   const fetchAppointment = useCallback(async () => {
     setLoading(true);
     try {
       const res = await api.get(`/api/appointments/${id}`);
-      setAppointment({...res.data});
+      setAppointment({ ...res.data });
     } catch (err) {
       console.error("Fetch appointment error:", err);
       setMessageType("error");
@@ -185,7 +185,12 @@ export default function AppointmentDetail() {
 
     // repair workflow
     if (appointment.appointment_type === "repair") {
-      const steps = ["OTP Verification", "Repair In Progress", "Payment", "Completed"];
+      const steps = [
+        "OTP Verification",
+        "Repair In Progress",
+        "Payment",
+        "Completed",
+      ];
       let activeIndex = 0;
 
       if (status === "repair_scheduled") activeIndex = 0;
@@ -408,21 +413,6 @@ export default function AppointmentDetail() {
         </button>
       </div>
 
-      {/* Toast message */}
-      {message && (
-        <div
-          className={`rounded-md border p-3 text-sm ${
-            messageType === "success"
-              ? "border-green-200 bg-green-50 text-green-800 dark:border-green-500/30 dark:bg-green-500/10 dark:text-green-300"
-              : messageType === "error"
-              ? "border-red-200 bg-red-50 text-red-800 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300"
-              : "border-slate-200 bg-slate-50 text-slate-700 dark:border-slate-700 dark:bg-slate-800/40 dark:text-slate-200"
-          }`}
-        >
-          {message}
-        </div>
-      )}
-
       {/* Summary Card */}
       <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -451,11 +441,14 @@ export default function AppointmentDetail() {
             <InfoRow
               label="Schedule"
               value={`${formatDateDDMMYYYY(appointment.scheduled_date)} • ${to12Hour(
-                appointment.scheduled_time
+                appointment.scheduled_time,
               )}`}
             />
             <InfoRow label="Phone" value={appointment.customer_phone || "-"} />
-            <InfoRow label="Address" value={appointment.customer_address || "-"} />
+            <InfoRow
+              label="Address"
+              value={appointment.customer_address || "-"}
+            />
           </div>
         </div>
       </div>
@@ -487,6 +480,21 @@ export default function AppointmentDetail() {
         <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
           Complete the required steps for this appointment
         </p>
+
+        {/* Toast message */}
+        {message && (
+          <div
+            className={`rounded-md border p-3 text-sm ${
+              messageType === "success"
+                ? "border-green-200 bg-green-50 text-green-800 dark:border-green-500/30 dark:bg-green-500/10 dark:text-green-300"
+                : messageType === "error"
+                  ? "border-red-200 bg-red-50 text-red-800 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300"
+                  : "border-slate-200 bg-slate-50 text-slate-700 dark:border-slate-700 dark:bg-slate-800/40 dark:text-slate-200"
+            }`}
+          >
+            {message}
+          </div>
+        )}
 
         {/* Diagnosis Scheduled */}
         {appointment.status === "diagnosis_scheduled" && (
