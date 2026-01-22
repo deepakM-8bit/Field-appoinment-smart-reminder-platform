@@ -31,6 +31,7 @@ export const requestOtp = (type) => async (req, res) => {
     );
 
     if (!apptRes.rows.length) {
+      await client.query("ROLLBACK");
       return res.status(400).json({ message: "Invalid appointment state" });
     }
 
@@ -46,11 +47,13 @@ export const requestOtp = (type) => async (req, res) => {
     );
 
     if (Number(recentOtpCount.rows[0].count) >= 3) {
+      await client.query("COMMIT"); // close transaction safely
+
       await notifyAdmin({
         ownerId: apptRes.rows[0].owner_id,
         subject: "OTP abuse detected",
         message: `Multiple OTP requests detected for appointment ID ${appointmentId}.
-         Technician ID: ${technicianId}.`,
+Technician ID: ${technicianId}.`,
       });
 
       return res.status(429).json({ message: "Too many OTP requests" });
@@ -66,12 +69,6 @@ export const requestOtp = (type) => async (req, res) => {
       [appointmentId, otp, type],
     );
 
-    await sendEmail({
-      to: apptRes.rows[0].customer_email,
-      subject: cfg.emailSubject,
-      html: `<p>Your OTP is:</p><h2>${otp}</h2>`,
-    });
-
     await client.query(
       `
       INSERT INTO logs (owner_id, appointment_id, technician_id, event, description)
@@ -82,15 +79,38 @@ export const requestOtp = (type) => async (req, res) => {
         appointmentId,
         technicianId,
         cfg.logEventSend,
-        `OTP sent for ${type}`,
+        `OTP generated for ${type}`,
       ],
     );
 
     await client.query("COMMIT");
-    return res.json({ message: "OTP sent successfully" });
+
+    try {
+      await sendEmail({
+        to: apptRes.rows[0].customer_email,
+        subject: cfg.emailSubject,
+        html: `<p>Your OTP is:</p><h2>${otp}</h2>`,
+      });
+
+      return res.json({ message: "OTP sent successfully" });
+    } catch (emailErr) {
+      console.error("OTP email send failed:", emailErr.message);
+
+      // Keep OTP in DB; return 202 so UI can show retry message
+      return res.status(202).json({
+        message: "OTP generated but email delivery failed. Please try again.",
+      });
+    }
   } catch (err) {
-    await client.query("ROLLBACK");
-    return res.status(500).json({ message: "Internal server error" });
+    try {
+      await client.query("ROLLBACK");
+    } catch {}
+
+    console.error("requestOtp error:", err);
+    return res.status(500).json({
+      message: "Internal server error",
+      error: err.message,
+    });
   } finally {
     client.release();
   }
