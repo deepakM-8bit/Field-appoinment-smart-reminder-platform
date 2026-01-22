@@ -4,9 +4,9 @@ import { sendTechnicianReminder } from "../utils/messages/technicianReminder.js"
 import { sendCustomerReminder } from "../utils/messages/customerReminder.js";
 import { notifyAdmin } from "../utils/notifyAdmin.js";
 
-cron.schedule("* * * * *", async () => {
+cron.schedule("*/5 * * * *", async () => {
   const { rows } = await pool.query(
-    "SELECT * FROM reminders WHERE send_at <= now() AND status= 'pending' AND attempts < 5",
+    "SELECT * FROM reminders WHERE send_at <= now() AND status= 'pending' AND attempts < 5 ORDER BY send_at ASC LIMIT 20",
   );
 
   for (const r of rows) {
