@@ -50,11 +50,7 @@ export const createAppointment = async (req, res) => {
 
     const customerId = customer.id;
 
-    /* ------------------------------------------------------------------
-       ✅ Technician auto-assign (OPTIMIZED, SAME LOGIC)
-       Old: N+1 workload queries (1 per technician)
-       New: compute workloads for all technicians in one GROUP BY query
-    ------------------------------------------------------------------ */
+    // Technician auto-assign
     const getTechnicians = await client.query(
       `
       SELECT 
@@ -809,7 +805,7 @@ export const getUnassignedAppointments = async (req, res) => {
       JOIN customers c ON c.id = a.customer_id
       WHERE a.owner_id = $1
         AND a.technician_id IS NULL
-        AND status IN = 'waiting_for_assignment'
+        AND status IN ('waiting_for_assignment')
       ORDER BY a.scheduled_date ASC
       LIMIT 10
       `,
