@@ -3,12 +3,12 @@ import { notifyAdmin } from "../utils/notifyAdmin.js";
 import pool from "../db.js";
 
 function timeToMinutes(timestr) {
-  if (!timestr) return;
-  const [h, m, s] = timestr.split(":").map(Number);
+  if (!timestr) return undefined;
+  const [h, m] = timestr.split(":").map(Number);
   return (h || 0) * 60 + (m || 0);
 }
 
-//admin create appointment (diagnosis/repair)
+// admin create appointment (diagnosis/repair)
 export const createAppointment = async (req, res) => {
   const { name, phoneno, email, address, category, sd, st } = req.body;
   const userId = req.user.id;
@@ -25,21 +25,24 @@ export const createAppointment = async (req, res) => {
     const ownerRes = await client.query("SELECT name FROM users WHERE id=$1", [
       userId,
     ]);
-    const businessName = ownerRes.rows[0].name;
+    const businessName = ownerRes.rows[0]?.name || "Business";
 
+    // ✅ Customer check / create
     const existingCustomer = await client.query(
       "SELECT * FROM customers WHERE phone=$1 AND owner_id=$2",
       [phoneno, userId],
     );
 
     let customer;
-
     if (existingCustomer.rows.length === 0) {
       const addCustomer = await client.query(
-        "INSERT INTO customers (owner_id, name, phone, email, address) VALUES ($1,$2,$3,$4,$5) RETURNING *",
+        `
+        INSERT INTO customers (owner_id, name, phone, email, address)
+        VALUES ($1,$2,$3,$4,$5)
+        RETURNING *
+        `,
         [userId, name, phoneno, email, address],
       );
-
       customer = addCustomer.rows[0];
     } else {
       customer = existingCustomer.rows[0];
@@ -47,75 +50,95 @@ export const createAppointment = async (req, res) => {
 
     const customerId = customer.id;
 
-    /*----Tehcnician aut0-assign----*/
+    /* ------------------------------------------------------------------
+       ✅ Technician auto-assign (OPTIMIZED, SAME LOGIC)
+       Old: N+1 workload queries (1 per technician)
+       New: compute workloads for all technicians in one GROUP BY query
+    ------------------------------------------------------------------ */
     const getTechnicians = await client.query(
       `
-            SELECT * FROM technicians 
-            WHERE owner_id=$1 
-            AND active=true`,
+      SELECT 
+        id, name, email, phone, category,
+        work_start_time, work_end_time, active
+      FROM technicians
+      WHERE owner_id=$1
+        AND active=true
+      `,
       [userId],
     );
+
     const technicians = getTechnicians.rows;
 
     let chosenTechnicianId = null;
     let chosenTechnician = null;
 
     if (technicians.length > 0) {
+      const normalizedReqCategory = category.toLowerCase().replace(/\s+/g, "");
+
+      // gather tech ids
+      const techIds = technicians.map((t) => t.id);
+
+      // single query for all workloads
+      const workloadRes = await client.query(
+        `
+        SELECT
+          technician_id,
+          COALESCE(
+            SUM(
+              CASE
+                WHEN appointment_type = 'diagnosis'
+                     AND status IN ('diagnosis_scheduled','diagnosis_in_progress')
+                  THEN COALESCE(estimated_duration, 60)
+
+                WHEN appointment_type = 'repair'
+                     AND status IN ('repair_scheduled','repair_in_progress')
+                  THEN COALESCE(estimated_duration, 60)
+
+                ELSE 0
+              END
+            ),
+            0
+          ) AS minutes
+        FROM appointments
+        WHERE technician_id = ANY($1::int[])
+          AND scheduled_date = $2
+        GROUP BY technician_id
+        `,
+        [techIds, sd],
+      );
+
+      // map: techId -> workload minutes
+      const workloadMap = {};
+      for (const row of workloadRes.rows) {
+        workloadMap[row.technician_id] = Number(row.minutes) || 0;
+      }
+
       let bestTech = null;
 
       for (const tech of technicians) {
-        if (!tech.email) {
-          continue;
-        }
+        if (!tech.email) continue;
 
-        const normalizedReqCategory = category
-          .toLowerCase()
-          .replace(/\s+/g, "");
-
-        const techCategories = tech.category
+        // category match
+        const techCategories = String(tech.category || "")
           .toLowerCase()
           .replace(/\s+/g, "")
           .split(",");
 
         const canDoCategory = techCategories.includes(normalizedReqCategory);
+        if (!canDoCategory) continue;
 
-        if (!canDoCategory) {
-          continue; // skip this technician
-        }
+        // workload lookup
+        const workloadMinutes = workloadMap[tech.id] || 0;
 
-        const workload = await client.query(
-          `
-                    SELECT COALESCE(
-                        SUM(
-                          CASE
-                            WHEN appointment_type = 'diagnosis'
-                                 AND status IN ('diagnosis_scheduled','diagnosis_in_progress')
-                              THEN COALESCE(estimated_duration,60)
-                                 
-                            WHEN appointment_type = 'repair'
-                                 AND status IN ('repair_scheduled','repair_in_progress')
-                              THEN COALESCE(estimated_duration,60)
-                        
-                            ELSE 0  
-                         END
-                        ),0
-                    )AS minutes
-                    FROM appointments
-                    WHERE technician_id=$1
-                      AND scheduled_date=$2;
-                `,
-          [tech.id, sd],
-        );
-
-        const workloadMinutes = Number(workload.rows[0].minutes) || 0;
-
+        // capacity calculation
         const workStartTime = timeToMinutes(tech.work_start_time);
         const workEndTime = timeToMinutes(tech.work_end_time);
+        if (workStartTime === undefined || workEndTime === undefined) continue;
+
         const capacityMinutes = workEndTime - workStartTime;
         const remainingCapacity = capacityMinutes - workloadMinutes;
 
         const diagnosisDurationMinutes = 60;
-
         const canFit = remainingCapacity >= diagnosisDurationMinutes;
 
         if (canFit) {
@@ -127,9 +150,10 @@ export const createAppointment = async (req, res) => {
           }
         }
       }
+
       if (bestTech) {
         chosenTechnician = technicians.find((t) => t.id === bestTech.id);
-        chosenTechnicianId = chosenTechnician.id;
+        chosenTechnicianId = chosenTechnician?.id || null;
       }
     }
 
@@ -139,10 +163,15 @@ export const createAppointment = async (req, res) => {
 
     /*----Appointment insert----*/
     const insertAppointment = await client.query(
-      `INSERT INTO appointments (owner_id, customer_id,
-             technician_id, appointment_type, status, category,
-             scheduled_date, scheduled_time) VALUES 
-            ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
+      `
+      INSERT INTO appointments (
+        owner_id, customer_id, technician_id,
+        appointment_type, status, category,
+        scheduled_date, scheduled_time
+      )
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+      RETURNING *
+      `,
       [
         userId,
         customerId,
@@ -161,8 +190,7 @@ export const createAppointment = async (req, res) => {
       await notifyAdmin({
         ownerId: userId,
         subject: "Diagnosis requires manual assignment",
-        message: `Diagnosis appointment (ID: ${appointment.id}) was created but
-                no technician was available for category "${category}".`,
+        message: `Diagnosis appointment (ID: ${appointment.id}) was created but no technician was available for category "${category}".`,
       });
     }
 
@@ -171,24 +199,25 @@ export const createAppointment = async (req, res) => {
       const sendAt = new Date();
 
       await client.query(
-        `INSERT INTO reminders (appointment_id, send_at, type, meta)
-              VALUES (
-                 $1,
-                 $2,
-                 'technician_reminder',
-                 jsonb_build_object(
-                   'technician_email', $3::text,
-                   'technician_name', $4::text,
-                   'customer_name', $5::text,
-                   'customer_address', $6::text,
-                   'customer_phone', $7::text,
-                   'business_name', $8::text,
-                   'scheduled_date', $9::date,
-                   'scheduled_time', $10::time,
-                   'onwer_id', $11::text
-                )      
-            )
-            `,
+        `
+        INSERT INTO reminders (appointment_id, send_at, type, meta)
+        VALUES (
+          $1,
+          $2,
+          'technician_reminder',
+          jsonb_build_object(
+            'technician_email', $3::text,
+            'technician_name', $4::text,
+            'customer_name', $5::text,
+            'customer_address', $6::text,
+            'customer_phone', $7::text,
+            'business_name', $8::text,
+            'scheduled_date', $9::date,
+            'scheduled_time', $10::time,
+            'onwer_id', $11::text
+          )
+        )
+        `,
         [
           appointment.id,
           sendAt,
@@ -207,23 +236,23 @@ export const createAppointment = async (req, res) => {
       if (customer.email) {
         await client.query(
           `
-                INSERT INTO reminders (appointment_id, send_at, type, meta)
-                VALUES (
-                $1,
-                $2,
-                'customer_reminder',
-                jsonb_build_object(
-                  'business_name', $3::text,
-                  'customer_email', $4::text,
-                  'customer_name', $5::text,
-                  'technician_name', $6::text,
-                  'technician_phone', $7::text,
-                  'scheduled_date', $8::date,
-                  'scheduled_time', $9::time,
-                  'owner_id', $10::text
-                 )
-                )
-                `,
+          INSERT INTO reminders (appointment_id, send_at, type, meta)
+          VALUES (
+            $1,
+            $2,
+            'customer_reminder',
+            jsonb_build_object(
+              'business_name', $3::text,
+              'customer_email', $4::text,
+              'customer_name', $5::text,
+              'technician_name', $6::text,
+              'technician_phone', $7::text,
+              'scheduled_date', $8::date,
+              'scheduled_time', $9::time,
+              'owner_id', $10::text
+            )
+          )
+          `,
           [
             appointment.id,
             sendAt,
@@ -241,8 +270,10 @@ export const createAppointment = async (req, res) => {
 
       /*----Insert logs----*/
       await client.query(
-        `INSERT INTO logs(owner_id, appointment_id, technician_id, event, description)
-            VALUES ($1,$2,$3,$4,$5)`,
+        `
+        INSERT INTO logs(owner_id, appointment_id, technician_id, event, description)
+        VALUES ($1,$2,$3,$4,$5)
+        `,
         [
           userId,
           appointment.id,
@@ -256,8 +287,7 @@ export const createAppointment = async (req, res) => {
     }
 
     await client.query("COMMIT");
-    console.log(req.body);
-    console.log(appointment);
+
     return res.status(201).json({
       message: "Diagnosis appointment created",
       appointment,
@@ -265,9 +295,8 @@ export const createAppointment = async (req, res) => {
       autoAssignedTechnicianId: chosenTechnicianId,
     });
   } catch (err) {
-    console.log(req.body);
     await client.query("ROLLBACK");
-    console.error("error creating diagnosis appoinment:", err);
+    console.error("error creating diagnosis appointment:", err);
     return res.status(500).json({ message: "internal server error" });
   } finally {
     client.release();
@@ -752,6 +781,7 @@ export const listPendingApprovals = async (req, res) => {
       WHERE a.owner_id = $1
         AND a.status = 'diagnosis_completed_waiting_approval'
       ORDER BY a.created_at ASC
+      LIMIT 10
       `,
       [ownerId],
     );
