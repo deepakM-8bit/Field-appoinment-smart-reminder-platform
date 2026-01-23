@@ -2,85 +2,89 @@ import { sendEmail } from "../utils/sendEmail.js";
 import { notifyAdmin } from "../utils/notifyAdmin.js";
 import pool from "../db.js";
 
-function timeToMinutes(timestr){
-    if(!timestr) return ;
-    const [h,m,s] = timestr.split(":").map(Number);
-    return (h||0) * 60 + (m||0);
+function timeToMinutes(timestr) {
+  if (!timestr) return;
+  const [h, m, s] = timestr.split(":").map(Number);
+  return (h || 0) * 60 + (m || 0);
 }
 
 //admin create appointment (diagnosis/repair)
-export const createAppointment = async(req,res)=>{
-    const {name,phoneno,email,address,category,sd,st} = req.body;
-    const userId = req.user.id;
+export const createAppointment = async (req, res) => {
+  const { name, phoneno, email, address, category, sd, st } = req.body;
+  const userId = req.user.id;
 
-    if(!phoneno || !category || !sd || !st){
-        return res.status(400).json({message:"missing input fields"});
+  if (!phoneno || !category || !sd || !st) {
+    return res.status(400).json({ message: "missing input fields" });
+  }
+
+  const client = await pool.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    const ownerRes = await client.query("SELECT name FROM users WHERE id=$1", [
+      userId,
+    ]);
+    const businessName = ownerRes.rows[0].name;
+
+    const existingCustomer = await client.query(
+      "SELECT * FROM customers WHERE phone=$1 AND owner_id=$2",
+      [phoneno, userId],
+    );
+
+    let customer;
+
+    if (existingCustomer.rows.length === 0) {
+      const addCustomer = await client.query(
+        "INSERT INTO customers (owner_id, name, phone, email, address) VALUES ($1,$2,$3,$4,$5) RETURNING *",
+        [userId, name, phoneno, email, address],
+      );
+
+      customer = addCustomer.rows[0];
+    } else {
+      customer = existingCustomer.rows[0];
     }
 
-    const client = await pool.connect();
+    const customerId = customer.id;
 
-    try{
-        await client.query("BEGIN");
-
-        const ownerRes = await client.query(
-          "SELECT name FROM users WHERE id=$1",
-          [userId]
-        );
-        const businessName = ownerRes.rows[0].name;
-
-
-        const existingCustomer = await client.query("SELECT * FROM customers WHERE phone=$1 AND owner_id=$2",
-            [phoneno, userId]   
-        );
-
-        let customer;
-       
-        if(existingCustomer.rows.length === 0){
-            const addCustomer = await client.query("INSERT INTO customers (owner_id, name, phone, email, address) VALUES ($1,$2,$3,$4,$5) RETURNING *",
-                [userId, name, phoneno, email, address]);
-
-                customer = addCustomer.rows[0];
-        }else{
-            customer = existingCustomer.rows[0];
-        }
-
-        const customerId = customer.id;
-
-        /*----Tehcnician aut0-assign----*/
-        const getTechnicians = await client.query (`
+    /*----Tehcnician aut0-assign----*/
+    const getTechnicians = await client.query(
+      `
             SELECT * FROM technicians 
             WHERE owner_id=$1 
             AND active=true`,
-            [userId]
-        );
-        const technicians = getTechnicians.rows;
+      [userId],
+    );
+    const technicians = getTechnicians.rows;
 
-        let chosenTechnicianId = null;
-        let chosenTechnician = null;
+    let chosenTechnicianId = null;
+    let chosenTechnician = null;
 
-        if(technicians.length > 0){
-            let bestTech = null;
+    if (technicians.length > 0) {
+      let bestTech = null;
 
-            for(const tech of technicians){
+      for (const tech of technicians) {
+        if (!tech.email) {
+          continue;
+        }
 
-                if(!tech.email){
-                    continue;
-                }
+        const normalizedReqCategory = category
+          .toLowerCase()
+          .replace(/\s+/g, "");
 
-                const normalizedReqCategory = category.toLowerCase().replace(/\s+/g, '');
+        const techCategories = tech.category
+          .toLowerCase()
+          .replace(/\s+/g, "")
+          .split(",");
 
-                const techCategories = tech.category
-                    .toLowerCase()
-                    .replace(/\s+/g, '')
-                    .split(',');
+        const canDoCategory = techCategories.includes(normalizedReqCategory);
 
-                const canDoCategory = techCategories.includes(normalizedReqCategory);
+        if (!canDoCategory) {
+          continue; // skip this technician
+        }
 
-                if (!canDoCategory) {
-                    continue; // skip this technician
-                }
-
-                const workload = await client.query(`
+        const workload = await client.query(
+          `
                     SELECT COALESCE(
                         SUM(
                           CASE
@@ -100,66 +104,74 @@ export const createAppointment = async(req,res)=>{
                     WHERE technician_id=$1
                       AND scheduled_date=$2;
                 `,
-                [tech.id,sd]
-            );
+          [tech.id, sd],
+        );
 
-                const workloadMinutes = Number(workload.rows[0].minutes)||0;
+        const workloadMinutes = Number(workload.rows[0].minutes) || 0;
 
-                const workStartTime = timeToMinutes(tech.work_start_time);
-                const workEndTime = timeToMinutes(tech.work_end_time);
-                const capacityMinutes = workEndTime - workStartTime;
-                const remainingCapacity = capacityMinutes - workloadMinutes;
+        const workStartTime = timeToMinutes(tech.work_start_time);
+        const workEndTime = timeToMinutes(tech.work_end_time);
+        const capacityMinutes = workEndTime - workStartTime;
+        const remainingCapacity = capacityMinutes - workloadMinutes;
 
-                const diagnosisDurationMinutes = 60;
-                
-                const canFit = remainingCapacity >= diagnosisDurationMinutes;
+        const diagnosisDurationMinutes = 60;
 
-                if(canFit){
-                    if(!bestTech || workloadMinutes < bestTech.workloadMinutes){
-                        bestTech={
-                            id:tech.id,
-                            workloadMinutes,
-                        };
-                    }
-                }
-            }
-            if(bestTech){
-                chosenTechnician = technicians.find(t => t.id === bestTech.id);
-                chosenTechnicianId = chosenTechnician.id;
-            }
+        const canFit = remainingCapacity >= diagnosisDurationMinutes;
+
+        if (canFit) {
+          if (!bestTech || workloadMinutes < bestTech.workloadMinutes) {
+            bestTech = {
+              id: tech.id,
+              workloadMinutes,
+            };
+          }
         }
+      }
+      if (bestTech) {
+        chosenTechnician = technicians.find((t) => t.id === bestTech.id);
+        chosenTechnicianId = chosenTechnician.id;
+      }
+    }
 
-        const status = chosenTechnicianId 
-         ? "diagnosis_scheduled" 
-         : "waiting_for_assignment";
+    const status = chosenTechnicianId
+      ? "diagnosis_scheduled"
+      : "waiting_for_assignment";
 
-        /*----Appointment insert----*/
-        const insertAppointment = await client.query(
-            `INSERT INTO appointments (owner_id, customer_id,
+    /*----Appointment insert----*/
+    const insertAppointment = await client.query(
+      `INSERT INTO appointments (owner_id, customer_id,
              technician_id, appointment_type, status, category,
              scheduled_date, scheduled_time) VALUES 
             ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
-            [userId, customerId, chosenTechnicianId, "diagnosis",
-                 status, category, sd, st]
-        );
+      [
+        userId,
+        customerId,
+        chosenTechnicianId,
+        "diagnosis",
+        status,
+        category,
+        sd,
+        st,
+      ],
+    );
 
-        const appointment = insertAppointment.rows[0];
+    const appointment = insertAppointment.rows[0];
 
-        if(!chosenTechnicianId) {
-            await notifyAdmin({
-                ownerId: userId,
-                subject: "Diagnosis requires manual assignment",
-                message: `Diagnosis appointment (ID: ${appointment.id}) was created but
-                no technician was available for category "${category}".`
-            });
-        }
+    if (!chosenTechnicianId) {
+      await notifyAdmin({
+        ownerId: userId,
+        subject: "Diagnosis requires manual assignment",
+        message: `Diagnosis appointment (ID: ${appointment.id}) was created but
+                no technician was available for category "${category}".`,
+      });
+    }
 
-        /*----Reminder insert----*/
-        if(chosenTechnicianId){
-            const sendAt = new Date();
+    /*----Reminder insert----*/
+    if (chosenTechnicianId) {
+      const sendAt = new Date();
 
-            await client.query(
-             `INSERT INTO reminders (appointment_id, send_at, type, meta)
+      await client.query(
+        `INSERT INTO reminders (appointment_id, send_at, type, meta)
               VALUES (
                  $1,
                  $2,
@@ -176,25 +188,25 @@ export const createAppointment = async(req,res)=>{
                    'onwer_id', $11::text
                 )      
             )
-            `, 
-            [
-             appointment.id,
-             sendAt,
-             chosenTechnician.email,
-             chosenTechnician.name,
-             customer.name,
-             customer.address,
-             customer.phone,
-             businessName,
-             sd,
-             st,
-             userId
-            ]
-         );
+            `,
+        [
+          appointment.id,
+          sendAt,
+          chosenTechnician.email,
+          chosenTechnician.name,
+          customer.name,
+          customer.address,
+          customer.phone,
+          businessName,
+          sd,
+          st,
+          userId,
+        ],
+      );
 
-         if(customer.email) {
-            await client.query(
-                `
+      if (customer.email) {
+        await client.query(
+          `
                 INSERT INTO reminders (appointment_id, send_at, type, meta)
                 VALUES (
                 $1,
@@ -212,89 +224,89 @@ export const createAppointment = async(req,res)=>{
                  )
                 )
                 `,
-                [
-                   appointment.id,
-                   sendAt,
-                   businessName,
-                   customer.email,
-                   customer.name,
-                   chosenTechnician.name,
-                   chosenTechnician.phone,
-                   sd,
-                   st,
-                   userId                   
-                ]
-            );
-         }
-
-        /*----Insert logs----*/ 
-        await client.query(
-            `INSERT INTO logs(owner_id, appointment_id, technician_id, event, description)
-            VALUES ($1,$2,$3,$4,$5)`,
-            [userId, 
+          [
             appointment.id,
-            chosenTechnicianId, 
-            "diagnosis_created",
-            chosenTechnicianId 
-                ? "Diagnosis appointment created and technician auto-assigned" 
-                : "Diagnosis appointment created but no technician available"
-            ]
-          );
-        }
-      
-         await client.query("COMMIT");
-         console.log(req.body);
-         console.log(appointment);
-         return res.status(201).json({
-            message:"Diagnosis appointment created",
-            appointment,
-            customer,
-            autoAssignedTechnicianId:chosenTechnicianId,
-        });
+            sendAt,
+            businessName,
+            customer.email,
+            customer.name,
+            chosenTechnician.name,
+            chosenTechnician.phone,
+            sd,
+            st,
+            userId,
+          ],
+        );
+      }
 
-    }catch(err){
-        console.log(req.body);
-        await client.query("ROLLBACK");
-        console.error("error creating diagnosis appoinment:",err);
-        return res.status(500).json({message:"internal server error"});
-    }finally{
-        client.release();
+      /*----Insert logs----*/
+      await client.query(
+        `INSERT INTO logs(owner_id, appointment_id, technician_id, event, description)
+            VALUES ($1,$2,$3,$4,$5)`,
+        [
+          userId,
+          appointment.id,
+          chosenTechnicianId,
+          "diagnosis_created",
+          chosenTechnicianId
+            ? "Diagnosis appointment created and technician auto-assigned"
+            : "Diagnosis appointment created but no technician available",
+        ],
+      );
     }
+
+    await client.query("COMMIT");
+    console.log(req.body);
+    console.log(appointment);
+    return res.status(201).json({
+      message: "Diagnosis appointment created",
+      appointment,
+      customer,
+      autoAssignedTechnicianId: chosenTechnicianId,
+    });
+  } catch (err) {
+    console.log(req.body);
+    await client.query("ROLLBACK");
+    console.error("error creating diagnosis appoinment:", err);
+    return res.status(500).json({ message: "internal server error" });
+  } finally {
+    client.release();
+  }
 };
 
 //diagnosis completion logic
-export const completeDiagnosis = async (req,res) => {
-    const appointmentId = req.params.id;
-    const technicianId = req.user.id;
+export const completeDiagnosis = async (req, res) => {
+  const appointmentId = req.params.id;
+  const technicianId = req.user.id;
 
-    const{
-        issue_description,
-        requires_parts,
-        estimated_duration,
-        estimated_cost,
-        final_cost,
-        suggested_repair_date,
-        suggested_repair_time
-    } = req.body;
+  const {
+    issue_description,
+    requires_parts,
+    estimated_duration,
+    estimated_cost,
+    final_cost,
+    suggested_repair_date,
+    suggested_repair_time,
+  } = req.body;
 
-    if(
-        !issue_description ||
-        Number(estimated_duration) <= 0 ||
-        Number(estimated_cost) <= 0 ||
-        requires_parts === undefined ||
-        !suggested_repair_date
-    ) {
-        return res.status(400).json({message: "missing diagnosis details"});
-    }
+  if (
+    !issue_description ||
+    Number(estimated_duration) <= 0 ||
+    Number(estimated_cost) <= 0 ||
+    requires_parts === undefined ||
+    !suggested_repair_date
+  ) {
+    return res.status(400).json({ message: "missing diagnosis details" });
+  }
 
-    const client = await pool.connect();
+  const client = await pool.connect();
 
-    try{
-        await client.query("BEGIN");
+  try {
+    await client.query("BEGIN");
 
-        //validate appointment + technician
-        const apptRes = await client.query(
-            `
+    //validate appointment + technician
+    const apptRes = await client.query(
+      `
             SELECT 
             a.*,
             c.email AS customer_email,
@@ -307,21 +319,21 @@ export const completeDiagnosis = async (req,res) => {
              AND a.technician_id = $2
              AND a.status = 'diagnosis_in_progress'
              `,
-             [appointmentId, technicianId]
-        );
+      [appointmentId, technicianId],
+    );
 
-        if(!apptRes.rows.length) {
-            await client.query("ROLLBACK");
-            return res.status(400).json({
-                message:"Invalid appointment state for diagnosis completion"
-            });
-        }
+    if (!apptRes.rows.length) {
+      await client.query("ROLLBACK");
+      return res.status(400).json({
+        message: "Invalid appointment state for diagnosis completion",
+      });
+    }
 
-        const appointment = apptRes.rows[0];
+    const appointment = apptRes.rows[0];
 
-        //update appointment with diagnosis result
-        await client.query(
-            `
+    //update appointment with diagnosis result
+    await client.query(
+      `
             UPDATE appointments
             SET
               issue_description = $1,
@@ -335,24 +347,24 @@ export const completeDiagnosis = async (req,res) => {
               updated_at = now()
             WHERE id = $8
             `,
-            [
-                issue_description,
-                requires_parts,
-                estimated_duration,
-                estimated_cost,
-                final_cost,
-                suggested_repair_date,
-                suggested_repair_time || null,
-                appointmentId
-            ]
-        );
+      [
+        issue_description,
+        requires_parts,
+        estimated_duration,
+        estimated_cost,
+        final_cost,
+        suggested_repair_date,
+        suggested_repair_time || null,
+        appointmentId,
+      ],
+    );
 
-        //send quote email to customer
-        if (appointment.customer_email) {
-          await sendEmail({
-            to: appointment.customer_email,
-            subject: 'Repair Qoute - Approval Required',
-            html:`
+    //send quote email to customer
+    if (appointment.customer_email) {
+      await sendEmail({
+        to: appointment.customer_email,
+        subject: "Repair Qoute - Approval Required",
+        html: `
               <p>Hello <b>${appointment.customer_name}</b>,</p>
               
               <p>Your service diagnosis has been completed by <b>${appointment.business_name}</b>.</p>
@@ -364,13 +376,13 @@ export const completeDiagnosis = async (req,res) => {
               <p><b>Kindly confirm to proceed with the repair</b></p>
               
               <p>Thank You!</p>
-              `
-          });
-        }
+              `,
+      });
+    }
 
-        //Insert logs
-        await client.query(
-            `
+    //Insert logs
+    await client.query(
+      `
             INSERT INTO logs(
             owner_id,
             appointment_id,
@@ -380,42 +392,41 @@ export const completeDiagnosis = async (req,res) => {
             )
             VALUES ($1,$2,$3,$4,$5)
             `,
-            [
-                appointment.owner_id,
-                appointmentId,
-                technicianId,
-                "diagnosis_completed",
-                "Diagnosis completed and qoute sent to customer"
-            ]
-        );
+      [
+        appointment.owner_id,
+        appointmentId,
+        technicianId,
+        "diagnosis_completed",
+        "Diagnosis completed and qoute sent to customer",
+      ],
+    );
 
-        await client.query("COMMIT");
+    await client.query("COMMIT");
 
-        return res.json({
-            message:"Diagnosis completed and qoute sent for approval"
-        });
-
-    } catch(err) {
-        await client.query("ROLLBACK");
-        console.error("diagnosis completion failed:",err);
-        return res.status(500).json({message: "Internal server error"});
-    } finally {
-        client.release();
-    }
+    return res.json({
+      message: "Diagnosis completed and qoute sent for approval",
+    });
+  } catch (err) {
+    await client.query("ROLLBACK");
+    console.error("diagnosis completion failed:", err);
+    return res.status(500).json({ message: "Internal server error" });
+  } finally {
+    client.release();
+  }
 };
 
 //approve repair logic
-export const approveRepair = async (req,res) => {
-    const diagnosisId = req.params.id;
-    const userId = req.user.id; //admin
+export const approveRepair = async (req, res) => {
+  const diagnosisId = req.params.id;
+  const userId = req.user.id; //admin
 
-    const client = await pool.connect();
+  const client = await pool.connect();
 
-    try{
-        await client.query("BEGIN");
+  try {
+    await client.query("BEGIN");
 
-        const diagRes = await client.query(
-            `
+    const diagRes = await client.query(
+      `
             SELECT 
             a.*,
             c.name AS customer_name,
@@ -435,24 +446,24 @@ export const approveRepair = async (req,res) => {
               AND a.status = 'diagnosis_completed_waiting_approval'
               AND a.owner_id = $2
              `,
-             [diagnosisId, userId]      
-        );
+      [diagnosisId, userId],
+    );
 
-        if(!diagRes.rows.length) {
-            await client.query("ROLLBACK");
-            return res.status(400).json({
-                message: "Diagnosis not eligible for repair approval"
-            });
-        }
+    if (!diagRes.rows.length) {
+      await client.query("ROLLBACK");
+      return res.status(400).json({
+        message: "Diagnosis not eligible for repair approval",
+      });
+    }
 
-        const diag = diagRes.rows[0];
+    const diag = diagRes.rows[0];
 
-        let technicianId = diag.technician_id;
-        let repairStatus = "repair_scheduled";
+    let technicianId = diag.technician_id;
+    let repairStatus = "repair_scheduled";
 
-        if(technicianId) {
-            const workloadRes = await client.query(
-                `
+    if (technicianId) {
+      const workloadRes = await client.query(
+        `
                 SELECT COALESCE(
                 SUM(estimated_duration),0
                 ) AS minutes
@@ -461,19 +472,19 @@ export const approveRepair = async (req,res) => {
                   AND scheduled_date = $2
                   AND status IN ('repair_scheduled','repair_in_progress')
                   `,
-                  [technicianId,diag.scheduled_date]
-            );
+        [technicianId, diag.scheduled_date],
+      );
 
-            const workloadMinutes = Number(workloadRes.rows[0].minutes);
+      const workloadMinutes = Number(workloadRes.rows[0].minutes);
 
-            if(workloadMinutes + diag.estimated_duration > 480) {
-                technicianId = null;
-                repairStatus = 'waiting_for_assignment';
-            }
-        }
+      if (workloadMinutes + diag.estimated_duration > 480) {
+        technicianId = null;
+        repairStatus = "waiting_for_assignment";
+      }
+    }
 
-        const repairRes = await client.query(
-          `
+    const repairRes = await client.query(
+      `
           UPDATE appointments
           SET
             technician_id = $1,
@@ -492,36 +503,36 @@ export const approveRepair = async (req,res) => {
             AND owner_id = $12
           RETURNING *
           `,
-          [
-            technicianId,                 
-            repairStatus,                 
-            diag.category,                
-            diag.issue_description,       
-            diag.requires_parts,          
-            diag.estimated_duration,      
-            diag.estimated_cost,          
-            diag.final_cost,              
-            diag.scheduled_date,          
-            diag.scheduled_time,          
-            diagnosisId,                  
-            userId                        
-          ]
-        );
+      [
+        technicianId,
+        repairStatus,
+        diag.category,
+        diag.issue_description,
+        diag.requires_parts,
+        diag.estimated_duration,
+        diag.estimated_cost,
+        diag.final_cost,
+        diag.scheduled_date,
+        diag.scheduled_time,
+        diagnosisId,
+        userId,
+      ],
+    );
 
-        const repair = repairRes.rows[0];
+    const repair = repairRes.rows[0];
 
-        if(!technicianId) {
-            await notifyAdmin({
-                ownerId: userId,
-                subject: "Repair appointment unassigned",
-                message: `Repair appointment (ID: ${repair.id}) could not be auto-assigned 
-                due to technician capacity limits.`
-            });
-        }
+    if (!technicianId) {
+      await notifyAdmin({
+        ownerId: userId,
+        subject: "Repair appointment unassigned",
+        message: `Repair appointment (ID: ${repair.id}) could not be auto-assigned 
+                due to technician capacity limits.`,
+      });
+    }
 
-        if(technicianId && diag.technician_email) {
-            await client.query(
-                `
+    if (technicianId && diag.technician_email) {
+      await client.query(
+        `
                 INSERT INTO reminders (appointment_id, send_at, type, meta)
                 VALUES (
                 $1,
@@ -540,25 +551,25 @@ export const approveRepair = async (req,res) => {
                    )
                 )
                 `,
-                [
-                    repair.id,
-                    new Date(),
-                    diag.technician_email,
-                    diag.technician_name,
-                    diag.customer_name,
-                    diag.customer_phone,
-                    diag.customer_address,
-                    diag.business_name,
-                    repair.scheduled_date,
-                    repair.scheduled_time,
-                    userId
-                ]
-            );
-        }
+        [
+          repair.id,
+          new Date(),
+          diag.technician_email,
+          diag.technician_name,
+          diag.customer_name,
+          diag.customer_phone,
+          diag.customer_address,
+          diag.business_name,
+          repair.scheduled_date,
+          repair.scheduled_time,
+          userId,
+        ],
+      );
+    }
 
-        if(diag.customer_email) {
-            await client.query(
-                `
+    if (diag.customer_email) {
+      await client.query(
+        `
                 INSERT INTO reminders (appointment_id, send_at, type, meta)
                 VALUES (
                 $1,
@@ -576,68 +587,67 @@ export const approveRepair = async (req,res) => {
                    )
                 )
                 `,
-                [
-                    repair.id,
-                    new Date(),
-                    diag.customer_email,
-                    diag.customer_name,
-                    diag.business_name,
-                    diag.technician_name,
-                    diag.technician_phone,
-                    repair.scheduled_date,
-                    repair.scheduled_time,
-                    userId
-                ]
-            );
-        }
+        [
+          repair.id,
+          new Date(),
+          diag.customer_email,
+          diag.customer_name,
+          diag.business_name,
+          diag.technician_name,
+          diag.technician_phone,
+          repair.scheduled_date,
+          repair.scheduled_time,
+          userId,
+        ],
+      );
+    }
 
-        await client.query(
-            `
+    await client.query(
+      `
             INSERT INTO logs (
             owner_id, appointment_id, technician_id, event, description
             )
             VALUES ($1,$2,$3,$4,$5)
             `,
-            [
-                diag.owner_id,
-                repair.id,
-                technicianId,
-                "repair_created",
-                technicianId
-                 ? "Repair appointment auto-created"
-                 : "Repair created but technician unavailable"
-            ]
-        );
+      [
+        diag.owner_id,
+        repair.id,
+        technicianId,
+        "repair_created",
+        technicianId
+          ? "Repair appointment auto-created"
+          : "Repair created but technician unavailable",
+      ],
+    );
 
-        // await client.query(
-        //     `
-        //     UPDATE appointments 
-            
-        //     SET status = 'repair_scheduled', updated_at = now()
-        //     WHERE id = $1
-        //     `,
-        //     [diagnosisId]           
-        // );
+    // await client.query(
+    //     `
+    //     UPDATE appointments
 
-        console.log({
-            technicianEmail: diag.technician_email,
-            customerEmail: diag.customer_email
-        });
+    //     SET status = 'repair_scheduled', updated_at = now()
+    //     WHERE id = $1
+    //     `,
+    //     [diagnosisId]
+    // );
 
-        await client.query("COMMIT");
+    console.log({
+      technicianEmail: diag.technician_email,
+      customerEmail: diag.customer_email,
+    });
 
-        return res.json({
-            message: "Repair appointment created successfully",
-            repairAppointment: repair
-        });
+    await client.query("COMMIT");
 
-    } catch (err) {
-        await client.query("ROLLBACK");
-        console.error("Repair approval failed:", err);
-        return res.status(500).json({message:"Internal server error"});
-    } finally {
-        client.release();
-    }
+    return res.json({
+      message: "Repair appointment created successfully",
+      repairAppointment: repair,
+    });
+  } catch (err) {
+    await client.query("ROLLBACK");
+    console.error("Repair approval failed:", err);
+    return res.status(500).json({ message: "Internal server error" });
+  } finally {
+    client.release();
+  }
 };
 
 // view appoinment list
@@ -663,7 +673,7 @@ export const getAppointmentById = async (req, res) => {
       JOIN customers c ON c.id = a.customer_id
       WHERE a.id = $1
       `,
-      [appointmentId]
+      [appointmentId],
     );
 
     if (result.rows.length === 0) {
@@ -673,21 +683,16 @@ export const getAppointmentById = async (req, res) => {
     const appointment = result.rows[0];
 
     // Authorization check
-    if (
-      user.role === "technician" &&
-      appointment.technician_id !== user.id
-    ) {
+    if (user.role === "technician" && appointment.technician_id !== user.id) {
       return res.status(403).json({ message: "Access denied" });
     }
 
     return res.json(appointment);
-
   } catch (err) {
     console.error("Get appointment by ID error:", err);
     return res.status(500).json({ message: "Internal server error" });
   }
 };
-
 
 //technican view the allocated job
 export const getAppointmentsForTechnicianByDate = async (req, res) => {
@@ -718,7 +723,7 @@ export const getAppointmentsForTechnicianByDate = async (req, res) => {
         AND a.scheduled_date = $2
       ORDER BY a.scheduled_time ASC
       `,
-      [technicianId, date]
+      [technicianId, date],
     );
 
     return res.json(result.rows);
@@ -727,7 +732,6 @@ export const getAppointmentsForTechnicianByDate = async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
-
 
 // admin view pending approvals
 export const listPendingApprovals = async (req, res) => {
@@ -749,7 +753,7 @@ export const listPendingApprovals = async (req, res) => {
         AND a.status = 'diagnosis_completed_waiting_approval'
       ORDER BY a.created_at ASC
       `,
-      [ownerId]
+      [ownerId],
     );
 
     res.json(result.rows);
@@ -759,23 +763,35 @@ export const listPendingApprovals = async (req, res) => {
   }
 };
 
-//get unassigned appointment for manual assignment by admin 
+//get unassigned appointment for manual assignment by admin
 export const getUnassignedAppointments = async (req, res) => {
+  const ownerId = req.user.id;
   try {
     const result = await pool.query(
       `
-      SELECT id, customer_id, category, scheduled_date
-      FROM appointments
-      WHERE technician_id IS null
-      AND status IN ('waiting_for_assignment')
-      ORDER BY scheduled_date ASC
-      `
+      SELECT 
+        a.id, 
+        a.customer_id, 
+        a.category, 
+        a.scheduled_date,
+        c.name AS customer_name
+      FROM appointments a
+      JOIN customers c ON c.id = a.customer_id
+      WHERE a.owner_id = $1
+        AND a.technician_id IS NULL
+        AND status IN = 'waiting_for_assignment'
+      ORDER BY a.scheduled_date ASC
+      LIMIT 10
+      `,
+      [ownerId],
     );
 
     res.json(result.rows);
   } catch (err) {
     console.error("Unassigned appointments error:", err.message);
-    res.status(500).json({ message: "Failed to fetch unassigned appointments" });
+    res
+      .status(500)
+      .json({ message: "Failed to fetch unassigned appointments" });
   }
 };
 
@@ -792,7 +808,7 @@ export const assignTechnicianManually = async (req, res) => {
     // Check appointment
     const appointment = await pool.query(
       "SELECT id FROM appointments WHERE id = $1",
-      [id]
+      [id],
     );
 
     if (appointment.rowCount === 0) {
@@ -802,7 +818,7 @@ export const assignTechnicianManually = async (req, res) => {
     // Check technician
     const technician = await pool.query(
       "SELECT id FROM technicians WHERE id = $1",
-      [technicianId]
+      [technicianId],
     );
 
     if (technician.rowCount === 0) {
@@ -816,7 +832,7 @@ export const assignTechnicianManually = async (req, res) => {
       SET technician_id = $1, status = 'assigned'
       WHERE id = $2
       `,
-      [technicianId, id]
+      [technicianId, id],
     );
 
     res.json({ message: "Technician assigned successfully" });
@@ -845,12 +861,11 @@ export const getCustomerByPhone = async (req, res) => {
       ORDER BY phone
       LIMIT 5  
       `,
-      [ownerId, `${query}%`]
+      [ownerId, `${query}%`],
     );
 
     // Important: return null if not found (frontend expects this)
     return res.json(result.rows || null);
-
   } catch (err) {
     console.error("Get customer by phone error:", err);
     return res.status(500).json({ message: "Internal server error" });

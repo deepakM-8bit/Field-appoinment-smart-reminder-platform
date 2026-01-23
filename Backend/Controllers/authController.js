@@ -48,6 +48,7 @@ export const loginUser = async (req, res) => {
     const token = jwt.sign(
       { id: user.id, email: user.email, name: user.name, role: user.role },
       process.env.JWT_SECRET,
+      { expiresIn: "7d" },
     );
     return res.json({
       message: "user found",
@@ -59,13 +60,6 @@ export const loginUser = async (req, res) => {
         email: user.email,
         role: user.role,
       },
-    });
-    console.log({
-      message: "user logged in",
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
     });
   } catch (err) {
     res.status(500).json(err.message);
@@ -101,6 +95,7 @@ export const technicianLogin = async (req, res) => {
     const token = jwt.sign(
       { id: technician.id, name: technician.name, role: "technician" },
       process.env.JWT_SECRET,
+      { expiresIn: "7d" },
     );
 
     return res.json({
