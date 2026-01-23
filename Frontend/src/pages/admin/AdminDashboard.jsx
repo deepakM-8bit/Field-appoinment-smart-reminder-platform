@@ -20,7 +20,9 @@ function Section({ title, action, children }) {
 }
 
 function EmptyState({ text }) {
-  return <div className="text-sm text-slate-500 dark:text-slate-400">{text}</div>;
+  return (
+    <div className="text-sm text-slate-500 dark:text-slate-400">{text}</div>
+  );
 }
 
 export default function AdminDashboard() {
@@ -33,10 +35,12 @@ export default function AdminDashboard() {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const approvalsRes = await api.get("/api/appointments/pending-approvals");
-        setPendingApprovals(approvalsRes.data);
+        const [approvalsRes, unassignedRes] = await Promise.all([
+          api.get("/api/appointments/pending-approvals"),
+          api.get("/api/appointments/unassigned"),
+        ]);
 
-        const unassignedRes = await api.get("/api/appointments/unassigned");
+        setPendingApprovals(approvalsRes.data);
         setUnassigned(unassignedRes.data);
       } catch (err) {
         console.error(err);
