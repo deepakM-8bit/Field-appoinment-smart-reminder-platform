@@ -10,7 +10,9 @@ const MAX_OTP_ATTEMPTS = 5;
 const MAX_OTP_REQUESTS_15_MIN = 3;
 
 function normalizeEmail(email) {
-  return String(email || "").trim().toLowerCase();
+  return String(email || "")
+    .trim()
+    .toLowerCase();
 }
 
 function generateOtp() {
@@ -39,7 +41,7 @@ export const requestPasswordOtp = async (req, res) => {
   }
 
   try {
-    // ✅ Anti-enumeration response: always success message
+    // Anti-enumeration response: always success message
     const safeResponse = {
       message: "If an account exists, OTP has been sent to the email.",
     };
@@ -47,11 +49,14 @@ export const requestPasswordOtp = async (req, res) => {
     // Find user by email
     let userRes;
     if (userType === "admin") {
-      userRes = await pool.query(`SELECT id, email FROM users WHERE email = $1`, [email]);
+      userRes = await pool.query(
+        `SELECT id, email FROM users WHERE email = $1`,
+        [email],
+      );
     } else {
       userRes = await pool.query(
         `SELECT id, email FROM technicians WHERE email = $1`,
-        [email]
+        [email],
       );
     }
 
@@ -69,7 +74,7 @@ export const requestPasswordOtp = async (req, res) => {
         AND user_type = $2
         AND created_at > now() - interval '15 minutes'
       `,
-      [email, userType]
+      [email, userType],
     );
 
     if (Number(limitRes.rows[0].count) >= MAX_OTP_REQUESTS_15_MIN) {
@@ -86,7 +91,7 @@ export const requestPasswordOtp = async (req, res) => {
       INSERT INTO auth_otp_codes (email, user_type, otp_hash, expires_at)
       VALUES ($1, $2, $3, now() + interval '${OTP_EXP_MINUTES} minutes')
       `,
-      [email, userType, otpHash]
+      [email, userType, otpHash],
     );
 
     // Send OTP mail
@@ -121,7 +126,9 @@ export const verifyPasswordOtp = async (req, res) => {
   const otp = String(req.body.otp || "").trim();
 
   if (!email || !userType || !otp) {
-    return res.status(400).json({ message: "Email, userType and otp are required" });
+    return res
+      .status(400)
+      .json({ message: "Email, userType and otp are required" });
   }
 
   if (!["admin", "technician"].includes(userType)) {
@@ -141,7 +148,7 @@ export const verifyPasswordOtp = async (req, res) => {
       ORDER BY created_at DESC
       LIMIT 1
       `,
-      [email, userType]
+      [email, userType],
     );
 
     if (!otpRes.rows.length) {
@@ -152,20 +159,25 @@ export const verifyPasswordOtp = async (req, res) => {
 
     // brute force prevention
     if (row.attempts >= MAX_OTP_ATTEMPTS) {
-      return res.status(429).json({ message: "Too many attempts. Request new OTP." });
+      return res
+        .status(429)
+        .json({ message: "Too many attempts. Request new OTP." });
     }
 
     const ok = await bcrypt.compare(otp, row.otp_hash);
 
     if (!ok) {
-      await pool.query(`UPDATE auth_otp_codes SET attempts = attempts + 1 WHERE id = $1`, [
-        row.id,
-      ]);
+      await pool.query(
+        `UPDATE auth_otp_codes SET attempts = attempts + 1 WHERE id = $1`,
+        [row.id],
+      );
       return res.status(400).json({ message: "Invalid OTP" });
     }
 
     // mark used
-    await pool.query(`UPDATE auth_otp_codes SET used = true WHERE id = $1`, [row.id]);
+    await pool.query(`UPDATE auth_otp_codes SET used = true WHERE id = $1`, [
+      row.id,
+    ]);
 
     // create reset token (short-lived)
     const resetToken = signResetToken({
@@ -191,11 +203,15 @@ export const resetPasswordWithOtp = async (req, res) => {
   const newPassword = String(req.body.newPassword || "");
 
   if (!resetToken || !newPassword) {
-    return res.status(400).json({ message: "resetToken and newPassword are required" });
+    return res
+      .status(400)
+      .json({ message: "resetToken and newPassword are required" });
   }
 
   if (newPassword.length < 6) {
-    return res.status(400).json({ message: "Password must be at least 6 characters" });
+    return res
+      .status(400)
+      .json({ message: "Password must be at least 6 characters" });
   }
 
   try {
@@ -213,10 +229,11 @@ export const resetPasswordWithOtp = async (req, res) => {
     if (userType === "admin") {
       const upd = await pool.query(
         `UPDATE users SET password=$1 WHERE email=$2 RETURNING id`,
-        [hashedPassword, email]
+        [hashedPassword, email],
       );
 
-      if (!upd.rows.length) return res.status(404).json({ message: "User not found" });
+      if (!upd.rows.length)
+        return res.status(404).json({ message: "User not found" });
     } else {
       const upd = await pool.query(
         `
@@ -226,10 +243,11 @@ export const resetPasswordWithOtp = async (req, res) => {
         WHERE email=$2
         RETURNING id
         `,
-        [hashedPassword, email]
+        [hashedPassword, email],
       );
 
-      if (!upd.rows.length) return res.status(404).json({ message: "User not found" });
+      if (!upd.rows.length)
+        return res.status(404).json({ message: "User not found" });
     }
 
     return res.json({ message: "Password updated successfully" });
